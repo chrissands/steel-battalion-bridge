@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Windows.Forms;
+
 
 namespace SBBridge.Core
 {
@@ -9,7 +9,7 @@ namespace SBBridge.Core
         static Binding Pad(ControlId c, XboxButton b, string note = "") { return new Binding { Control = c, Output = OutputKind.XboxButton, XboxButton = b, Note = note }; }
         static Binding Stick(ControlId c, XboxAxis a, bool invert = false, string note = "") { return new Binding { Control = c, Output = OutputKind.XboxAxis, XboxAxis = a, Invert = invert, Note = note }; }
         static Binding Dir(ControlId c, AxisDirection d, XboxButton b, string note = "") { return new Binding { Control = c, Output = OutputKind.XboxButton, XboxButton = b, Direction = d, Threshold = 0.5, Note = note }; }
-        static Binding Key(ControlId c, Keys k, ButtonMode m = ButtonMode.Hold, string note = "") { return new Binding { Control = c, Output = OutputKind.Key, Key = k, Mode = m, Note = note }; }
+        static Binding Key(ControlId c, KeyCode k, ButtonMode m = ButtonMode.Hold, string note = "") { return new Binding { Control = c, Output = OutputKind.Key, Key = k, Mode = m, Note = note }; }
 
         /// <summary>
         /// Cockpit-style Xbox layout. The core flight controls ride on the virtual Xbox pad
@@ -44,39 +44,39 @@ namespace SBBridge.Core
             b.Add(Pad(ControlId.MultiMonModeSelect, XboxButton.Back, "Map / view"));
             b.Add(Pad(ControlId.Eject, XboxButton.Guide, "Steam / Guide button"));
             // Everything else -> keys (bind these in-game)
-            b.Add(Key(ControlId.Ignition, Keys.P, ButtonMode.Hold, "Power / shutdown"));
-            b.Add(Key(ControlId.CockpitHatch, Keys.Home));
-            b.Add(Key(ControlId.MultiMonOpenClose, Keys.M, ButtonMode.Hold, "Map"));
-            b.Add(Key(ControlId.MultiMonMapZoom, Keys.PageUp));
-            b.Add(Key(ControlId.MultiMonSubMonitor, Keys.NumPad0));
-            b.Add(Key(ControlId.MainMonZoomIn, Keys.Add));
-            b.Add(Key(ControlId.MainMonZoomOut, Keys.Subtract));
-            b.Add(Key(ControlId.FunctionFSS, Keys.NumPad1));
-            b.Add(Key(ControlId.FunctionManipulator, Keys.NumPad2));
-            b.Add(Key(ControlId.FunctionLineColorChange, Keys.NumPad3));
-            b.Add(Key(ControlId.FunctionTankDetach, Keys.NumPad4));
-            b.Add(Key(ControlId.FunctionOverride, Keys.NumPad5, ButtonMode.Hold, "Heat override"));
-            b.Add(Key(ControlId.FunctionNightScope, Keys.N, ButtonMode.Hold, "Night vision"));
-            b.Add(Key(ControlId.Washing, Keys.NumPad7));
-            b.Add(Key(ControlId.Extinguisher, Keys.NumPad8, ButtonMode.Hold, "Coolant flush"));
-            b.Add(Key(ControlId.Chaff, Keys.NumPad9));
-            b.Add(Key(ControlId.FunctionF1, Keys.F1));
-            b.Add(Key(ControlId.FunctionF2, Keys.F2));
-            b.Add(Key(ControlId.FunctionF3, Keys.F3));
-            b.Add(Key(ControlId.Comm1, Keys.D1, ButtonMode.Hold, "Weapon group / lance orders"));
-            b.Add(Key(ControlId.Comm2, Keys.D2));
-            b.Add(Key(ControlId.Comm3, Keys.D3));
-            b.Add(Key(ControlId.Comm4, Keys.D4));
-            b.Add(Key(ControlId.Comm5, Keys.D5));
+            b.Add(Key(ControlId.Ignition, KeyCode.P, ButtonMode.Hold, "Power / shutdown"));
+            b.Add(Key(ControlId.CockpitHatch, KeyCode.Home));
+            b.Add(Key(ControlId.MultiMonOpenClose, KeyCode.M, ButtonMode.Hold, "Map"));
+            b.Add(Key(ControlId.MultiMonMapZoom, KeyCode.PageUp));
+            b.Add(Key(ControlId.MultiMonSubMonitor, KeyCode.NumPad0));
+            b.Add(Key(ControlId.MainMonZoomIn, KeyCode.Add));
+            b.Add(Key(ControlId.MainMonZoomOut, KeyCode.Subtract));
+            b.Add(Key(ControlId.FunctionFSS, KeyCode.NumPad1));
+            b.Add(Key(ControlId.FunctionManipulator, KeyCode.NumPad2));
+            b.Add(Key(ControlId.FunctionLineColorChange, KeyCode.NumPad3));
+            b.Add(Key(ControlId.FunctionTankDetach, KeyCode.NumPad4));
+            b.Add(Key(ControlId.FunctionOverride, KeyCode.NumPad5, ButtonMode.Hold, "Heat override"));
+            b.Add(Key(ControlId.FunctionNightScope, KeyCode.N, ButtonMode.Hold, "Night vision"));
+            b.Add(Key(ControlId.Washing, KeyCode.NumPad7));
+            b.Add(Key(ControlId.Extinguisher, KeyCode.NumPad8, ButtonMode.Hold, "Coolant flush"));
+            b.Add(Key(ControlId.Chaff, KeyCode.NumPad9));
+            b.Add(Key(ControlId.FunctionF1, KeyCode.F1));
+            b.Add(Key(ControlId.FunctionF2, KeyCode.F2));
+            b.Add(Key(ControlId.FunctionF3, KeyCode.F3));
+            b.Add(Key(ControlId.Comm1, KeyCode.D1, ButtonMode.Hold, "Weapon group / lance orders"));
+            b.Add(Key(ControlId.Comm2, KeyCode.D2));
+            b.Add(Key(ControlId.Comm3, KeyCode.D3));
+            b.Add(Key(ControlId.Comm4, KeyCode.D4));
+            b.Add(Key(ControlId.Comm5, KeyCode.D5));
             // Latching toggle switches: tap a key each time the switch is flipped
-            b.Add(Key(ControlId.ToggleFilterControl, Keys.F5, ButtonMode.PulseOnChange));
-            b.Add(Key(ControlId.ToggleOxygenSupply, Keys.F6, ButtonMode.PulseOnChange));
-            b.Add(Key(ControlId.ToggleFuelFlowRate, Keys.F7, ButtonMode.PulseOnChange));
-            b.Add(Key(ControlId.ToggleBufferMaterial, Keys.F8, ButtonMode.PulseOnChange));
-            b.Add(Key(ControlId.ToggleVTLocation, Keys.F9, ButtonMode.PulseOnChange));
+            b.Add(Key(ControlId.ToggleFilterControl, KeyCode.F5, ButtonMode.PulseOnChange));
+            b.Add(Key(ControlId.ToggleOxygenSupply, KeyCode.F6, ButtonMode.PulseOnChange));
+            b.Add(Key(ControlId.ToggleFuelFlowRate, KeyCode.F7, ButtonMode.PulseOnChange));
+            b.Add(Key(ControlId.ToggleBufferMaterial, KeyCode.F8, ButtonMode.PulseOnChange));
+            b.Add(Key(ControlId.ToggleVTLocation, KeyCode.F9, ButtonMode.PulseOnChange));
             // Tuner dial clicks
-            b.Add(Key(ControlId.TunerClockwise, Keys.PageDown, ButtonMode.Pulse, "Next (e.g. camera / target)"));
-            b.Add(Key(ControlId.TunerCounterClockwise, Keys.End, ButtonMode.Pulse, "Previous"));
+            b.Add(Key(ControlId.TunerClockwise, KeyCode.PageDown, ButtonMode.Pulse, "Next (e.g. camera / target)"));
+            b.Add(Key(ControlId.TunerCounterClockwise, KeyCode.End, ButtonMode.Pulse, "Previous"));
             return p;
         }
 

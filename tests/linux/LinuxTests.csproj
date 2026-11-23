@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/SBBridge/Core/**/*.cs" Link="Core/%(Filename)%(Extension)" />
+    <Compile Include="../../src/SBBridge.Linux/*.cs" Exclude="../../src/SBBridge.Linux/Program.cs" Link="Linux/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../src/SBBridge.Linux/web/index.html" LogicalName="index.html" />
+  </ItemGroup>
+</Project>

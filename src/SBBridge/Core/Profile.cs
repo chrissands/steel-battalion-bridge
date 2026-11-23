@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
+
 using System.Xml.Serialization;
 
 namespace SBBridge.Core
@@ -50,7 +50,15 @@ namespace SBBridge.Core
         public XboxAxis XboxAxis { get; set; }
 
         [Category("2. Output"), ShowFor(OutputKind.Key), Description("Keyboard key (sent as a hardware scan code).")]
-        public Keys Key { get; set; }
+        [XmlIgnore]
+        public KeyCode Key { get; set; }
+
+        /// <summary>XML form of Key; accepts old WinForms names (Prior, Return, Oem1...).</summary>
+#if NETCOREAPP
+        [System.Text.Json.Serialization.JsonIgnore]
+#endif
+        [XmlElement("Key"), Browsable(false)]
+        public string KeyXml { get { return Key.ToString(); } set { Key = KeyNames.Parse(value); } }
         [Category("2. Output"), ShowFor(OutputKind.Key), Description("Hold Ctrl with the key.")]
         public bool WithCtrl { get; set; }
         [Category("2. Output"), ShowFor(OutputKind.Key), Description("Hold Shift with the key.")]
@@ -116,17 +124,7 @@ namespace SBBridge.Core
             }
         }
 
-        static string KeyName(Keys k)
-        {
-            switch (k)
-            {
-                case Keys.PageUp: return "PageUp";
-                case Keys.PageDown: return "PageDown";
-                case Keys.Return: return "Enter";
-                case Keys.Capital: return "CapsLock";
-                default: return k.ToString();
-            }
-        }
+        static string KeyName(KeyCode k) { return k.ToString(); }
 
         // ---- ICustomTypeDescriptor: hide properties that don't apply to the current output ----
         AttributeCollection ICustomTypeDescriptor.GetAttributes() { return TypeDescriptor.GetAttributes(this, true); }

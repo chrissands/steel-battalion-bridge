@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
+
 
 namespace SBBridge.Core
 {
@@ -162,10 +162,10 @@ namespace SBBridge.Core
                     case OutputKind.XboxAxis:
                         AddAxis(b.XboxAxis, b.Direction == AxisDirection.Negative ? -1 : 1, true, false); break;
                     case OutputKind.Key:
-                        if (b.WithCtrl) f.Keys[(int)Keys.ControlKey] = true;
-                        if (b.WithShift) f.Keys[(int)Keys.ShiftKey] = true;
-                        if (b.WithAlt) f.Keys[(int)Keys.Menu] = true;
-                        int vk = (int)(b.Key & Keys.KeyCode);
+                        if (b.WithCtrl) f.Keys[(int)KeyCode.ControlKey] = true;
+                        if (b.WithShift) f.Keys[(int)KeyCode.ShiftKey] = true;
+                        if (b.WithAlt) f.Keys[(int)KeyCode.Menu] = true;
+                        int vk = (int)b.Key;
                         if (vk > 0 && vk < 256) f.Keys[vk] = true;
                         break;
                     case OutputKind.MouseButton:

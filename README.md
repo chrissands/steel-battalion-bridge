@@ -1,7 +1,7 @@
 # Steel Battalion Bridge
 
-Use the original Xbox **Steel Battalion** controller on Windows 11 as a modern
-**XInput / Steam Input** controller. The controller plugs straight into USB, so no
+Use the original Xbox **Steel Battalion** controller on **Windows 10/11** and **Linux (Bazzite,
+SteamOS and other distros)** as a modern **XInput / Steam Input** controller. The controller plugs straight into USB, so no
 adapter board or other hardware is needed.
 
 ```
@@ -31,7 +31,16 @@ ViGEmBus directly, so it needs no extra DLLs.
 
 > **Download:** get `SBBridge-Setup-x.y.z.exe` from the [Releases](https://github.com/chrissands/steel-battalion-bridge/releases) page.
 
-## Install
+## Linux / Bazzite
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chrissands/steel-battalion-bridge/main/linux/install.sh | bash
+```
+
+This installs a background service plus a settings page at <http://127.0.0.1:8732/>. See
+[docs/LINUX.md](docs/LINUX.md) for details. The rest of this README covers Windows.
+
+## Install (Windows)
 
 1. Download and run **`SBBridge-Setup-1.0.0.exe`**, then accept the admin (UAC) prompt.
 2. Leave the default options ticked and click Install. The installer:
@@ -125,10 +134,13 @@ installer/           NSIS installer script + icon
 driver-helper/       sbdriver.exe source (WinUSB INF + local catalog signing; libwdi pki.c, LGPL)
 redist/              official ViGEmBus installer (BSD-3)
 src/SBBridge/
-  Core/              platform-neutral: protocol, mapper, engine, profiles
+  Core/              platform-neutral: protocol, mapper, engine, profiles (shared with Linux)
   Platform/Windows/  WinUSB transport, ViGEmBus virtual pad, SendInput
   UI/                WinForms binding utility (tray app)
-docs/LINUX.md        plan for the Bazzite port
+docs/LINUX.md        Linux / Bazzite guide
+linux/               Linux install / uninstall scripts
+src/SBBridge.Linux/  Linux service: libusb transport, uinput Xbox 360 pad + keyboard, web UI
+tests/linux/         Linux tests (uinput layouts, key map, web API)
 ```
 
 ## Troubleshooting

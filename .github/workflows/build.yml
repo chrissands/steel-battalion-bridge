@@ -1,4 +1,4 @@
-name: Build installer
+name: Build
 
 on:
   push:
@@ -11,7 +11,18 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT";
+          else echo "version=0.0.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"; fi
+
+  windows:
+    needs: version
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -21,14 +32,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends mono-devel mono-mcs libmono-system-windows-forms4.0-cil libgdiplus gcc-mingw-w64-x86-64 nsis xvfb
 
-      - name: Version
-        id: ver
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT";
-          else echo "version=0.0.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"; fi
-
       - name: Build app, driver helper and installer
-        run: ./build-installer.sh "${{ steps.ver.outputs.version }}"
+        run: ./build-installer.sh "${{ needs.version.outputs.version }}"
 
       - name: Run tests (Mono + Xvfb)
         run: |
@@ -40,14 +45,53 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: SBBridge-${{ steps.ver.outputs.version }}
+          name: SBBridge-windows-${{ needs.version.outputs.version }}
           path: |
             SBBridge-Setup-*.exe
             SBBridge.exe
 
-      - name: Publish release
+      - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: SBBridge-Setup-*.exe
-          generate_release_notes: true
+
+  linux:
+    needs: version
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run tests
+        run: |
+          dotnet build -c Release tests/linux/LinuxTests.csproj
+          HOME=/tmp/testhome dotnet tests/linux/bin/Release/net8.0/LinuxTests.dll
+
+      - name: Check shell scripts
+        run: shellcheck -S warning linux/install.sh linux/uninstall.sh build-linux.sh
+
+      - name: Build self-contained Linux release
+        run: ./build-linux.sh "${{ needs.version.outputs.version }}"
+
+      - name: Smoke-test the published binary
+        run: |
+          out/linux/sbbridge/sbbridge --version
+          HOME=/tmp/smoke timeout 6 out/linux/sbbridge/sbbridge --port 8799 & sleep 4
+          curl -fsS http://127.0.0.1:8799/api/state | head -c 300; echo
+          curl -fsS -o /dev/null http://127.0.0.1:8799/
+          wait || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbbridge-linux-x64-${{ needs.version.outputs.version }}
+          path: out/sbbridge-linux-x64.tar.gz
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/sbbridge-linux-x64.tar.gz

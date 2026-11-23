@@ -2,7 +2,7 @@ using System; using System.IO; using System.Windows.Forms; using SBBridge.Core;
 class FakeUsb : IControllerTransport { public byte[] Rep = new byte[26]; public bool IsOpen{get;set;} public string LastError{get{return null;}}
  public bool TryOpen(){IsOpen=true;return true;} public int Read(byte[] b,int t){System.Threading.Thread.Sleep(4);Buffer.BlockCopy(Rep,0,b,0,26);return 26;} public byte[] LastWrite; public bool Write(byte[] d){LastWrite=(byte[])d.Clone();return true;} public void Close(){IsOpen=false;} public void Dispose(){} }
 class FakePad : IVirtualGamepad { public PadReport R; public bool IsConnected{get;set;} public string LastError{get{return "x";}} public bool Connect(){IsConnected=true;return true;} public bool Submit(PadReport r){R=r;return true;} public void Disconnect(){IsConnected=false;} public void Dispose(){} }
-class FakeIn : IInputInjector { public string Log=""; public void Key(Keys k,bool d){Log+=(d?"+":"-")+k+" ";} public void MouseButton(MouseButtonId b,bool d){Log+=(d?"+":"-")+b+" ";} public void Wheel(int n){Log+="W"+n+" ";} public void MouseMove(int x,int y){} }
+class FakeIn : IInputInjector { public string Log=""; public void Key(KeyCode k,bool d){Log+=(d?"+":"-")+k+" ";} public void MouseButton(MouseButtonId b,bool d){Log+=(d?"+":"-")+b+" ";} public void Wheel(int n){Log+="W"+n+" ";} public void MouseMove(int x,int y){} }
 static class T {
  static void Check(bool c,string m){Console.WriteLine((c?"PASS ":"FAIL ")+m); if(!c) Environment.ExitCode=1;}
  static void Main(){
@@ -20,9 +20,9 @@ static class T {
   Check(f.Pad.RightTrigger==255,"RT full"); Check((f.Pad.Buttons&0x0200)!=0,"RB from MainWeapon"); Check((f.Pad.Buttons&0x0010)!=0,"Start");
   Check(f.Pad.LY==-32768,"Gear R => LY -1 "+f.Pad.LY);
   // toggle filter control on -> pulse F5
-  rep[6]=0x04; s.Parse(rep,26); m.Tick(s,true,50,0.004,p,st,f); Check(f.Keys[(int)Keys.F5],"F5 pulse on toggle flip"); m.Tick(s,true,150,0.004,p,st,f); Check(!f.Keys[(int)Keys.F5],"F5 pulse ended");
+  rep[6]=0x04; s.Parse(rep,26); m.Tick(s,true,50,0.004,p,st,f); Check(f.Keys[(int)KeyCode.F5],"F5 pulse on toggle flip"); m.Tick(s,true,150,0.004,p,st,f); Check(!f.Keys[(int)KeyCode.F5],"F5 pulse ended");
   // tuner CW event
-  rep[24]=0xC4; s.Parse(rep,26); m.Tick(s,true,200,0.004,p,st,f); Check(f.Keys[(int)Keys.PageDown],"tuner CW -> PageDown");
+  rep[24]=0xC4; s.Parse(rep,26); m.Tick(s,true,200,0.004,p,st,f); Check(f.Keys[(int)KeyCode.PageDown],"tuner CW -> PageDown");
   // gear up R->N
   rep[25]=0xFF; s.Parse(rep,26); m.Tick(s,true,300,0.004,p,st,f); Check(f.Pad.LY==0,"gear N => LY 0");
   // LEDs: Start LED (7) high nibble of byte 3 bright

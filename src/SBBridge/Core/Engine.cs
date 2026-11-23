@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Windows.Forms;
+
 
 namespace SBBridge.Core
 {
@@ -162,17 +162,17 @@ namespace SBBridge.Core
             }
         }
 
-        static readonly int[] Modifiers = { (int)Keys.ControlKey, (int)Keys.ShiftKey, (int)Keys.Menu };
+        static readonly int[] Modifiers = { (int)KeyCode.ControlKey, (int)KeyCode.ShiftKey, (int)KeyCode.Menu };
 
         void ApplyKeys(bool[] want, bool[] held)
         {
-            foreach (int m in Modifiers) if (want[m] && !held[m]) { input.Key((Keys)m, true); held[m] = true; }
+            foreach (int m in Modifiers) if (want[m] && !held[m]) { input.Key((KeyCode)m, true); held[m] = true; }
             for (int vk = 1; vk < 256; vk++)
             {
                 if (Array.IndexOf(Modifiers, vk) >= 0) continue;
-                if (want[vk] != held[vk]) { input.Key((Keys)vk, want[vk]); held[vk] = want[vk]; }
+                if (want[vk] != held[vk]) { input.Key((KeyCode)vk, want[vk]); held[vk] = want[vk]; }
             }
-            foreach (int m in Modifiers) if (!want[m] && held[m]) { input.Key((Keys)m, false); held[m] = false; }
+            foreach (int m in Modifiers) if (!want[m] && held[m]) { input.Key((KeyCode)m, false); held[m] = false; }
         }
 
         public void Dispose()

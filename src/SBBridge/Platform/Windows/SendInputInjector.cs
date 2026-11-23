@@ -10,23 +10,23 @@ namespace SBBridge.Platform.Windows
     {
         static readonly int Size = Marshal.SizeOf(typeof(Native.INPUT));
 
-        static bool IsExtended(Keys k)
+        static bool IsExtended(KeyCode k)
         {
             switch (k)
             {
-                case Keys.Insert: case Keys.Delete: case Keys.Home: case Keys.End: case Keys.PageUp: case Keys.PageDown:
-                case Keys.Left: case Keys.Right: case Keys.Up: case Keys.Down: case Keys.NumLock: case Keys.Divide:
-                case Keys.RControlKey: case Keys.RMenu: case Keys.LWin: case Keys.RWin: case Keys.Apps:
-                case Keys.PrintScreen: case Keys.BrowserBack: case Keys.BrowserForward: case Keys.VolumeUp:
-                case Keys.VolumeDown: case Keys.VolumeMute: case Keys.MediaPlayPause: case Keys.MediaNextTrack: case Keys.MediaPreviousTrack:
+                case KeyCode.Insert: case KeyCode.Delete: case KeyCode.Home: case KeyCode.End: case KeyCode.PageUp: case KeyCode.PageDown:
+                case KeyCode.Left: case KeyCode.Right: case KeyCode.Up: case KeyCode.Down: case KeyCode.NumLock: case KeyCode.Divide:
+                case KeyCode.RControlKey: case KeyCode.RMenu: case KeyCode.LWin: case KeyCode.RWin: case KeyCode.Apps:
+                case KeyCode.PrintScreen: case KeyCode.VolumeUp:
+                case KeyCode.VolumeDown: case KeyCode.VolumeMute: case KeyCode.MediaPlayPause: case KeyCode.MediaNextTrack: case KeyCode.MediaPreviousTrack:
                     return true;
             }
             return false;
         }
 
-        public void Key(Keys key, bool down)
+        public void Key(KeyCode key, bool down)
         {
-            var k = key & Keys.KeyCode;
+            var k = key;
             uint scan = Native.MapVirtualKey((uint)k, 0);
             var inp = new Native.INPUT { type = Native.INPUT_KEYBOARD };
             inp.u.ki.wVk = scan == 0 ? (ushort)k : (ushort)0;

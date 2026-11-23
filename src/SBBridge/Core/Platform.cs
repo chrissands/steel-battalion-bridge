@@ -1,7 +1,7 @@
 // Platform abstraction. Windows implementations live in Platform/Windows.
 // A Linux (Bazzite) port implements the same three interfaces with libusb + uinput.
 using System;
-using System.Windows.Forms;
+
 
 namespace SBBridge.Core
 {
@@ -46,7 +46,7 @@ namespace SBBridge.Core
     /// <summary>Keyboard / mouse injection.</summary>
     public interface IInputInjector
     {
-        void Key(Keys key, bool down);
+        void Key(KeyCode key, bool down);
         void MouseButton(MouseButtonId button, bool down);
         void Wheel(int notches);
         void MouseMove(int dx, int dy);
