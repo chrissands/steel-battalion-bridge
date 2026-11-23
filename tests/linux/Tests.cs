@@ -127,6 +127,8 @@ static class T
         Send("POST", "/api/output", new { enabled = true });
 
         // calibration: sweep aiming X from 100 to 900 (10-bit) then centre at 500
+        void SetAimX(int v) { lock (usb.Rep) { usb.Rep[9] = (byte)(v >> 2); usb.Rep[10] = (byte)((v & 3) << 6); } }
+        SetAimX(500); Thread.Sleep(150);   // settle before sampling starts
         Send("POST", "/api/calibration/start");
         foreach (var v in new[] { 100, 900, 500 }) { lock (usb.Rep) { usb.Rep[9] = (byte)(v >> 2); usb.Rep[10] = (byte)((v & 3) << 6); } Thread.Sleep(120); }
         var cal = J(Send("POST", "/api/calibration/finish"));
