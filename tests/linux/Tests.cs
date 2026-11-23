@@ -87,6 +87,7 @@ static class T
             if (header) m.Headers.Add("X-SBBridge", "1");
             if (host != null) m.Headers.Host = host;
             if (body != null) m.Content = new StringContent(body is string s ? s : JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            else if (method != "GET") m.Content = new StringContent("", Encoding.UTF8, "application/json"); // like a browser: Content-Length: 0
             return http.Send(m);
         }
         JsonNode J(HttpResponseMessage r) { return JsonNode.Parse(r.Content.ReadAsStringAsync().Result); }
