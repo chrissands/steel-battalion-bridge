@@ -17,20 +17,21 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install toolchain (Mono, mingw-w64, NSIS)
-        run: sudo apt-get update && sudo apt-get install -y mono-devel mingw-w64 nsis
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends mono-devel mono-mcs libmono-system-windows-forms4.0-cil libgdiplus gcc-mingw-w64-x86-64 nsis xvfb
 
       - name: Version
         id: ver
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT";
-          else echo "version=0.0.0-dev" >> "$GITHUB_OUTPUT"; fi
+          else echo "version=0.0.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"; fi
 
       - name: Build app, driver helper and installer
         run: ./build-installer.sh "${{ steps.ver.outputs.version }}"
 
       - name: Run tests (Mono + Xvfb)
         run: |
-          sudo apt-get install -y xvfb
           cd src/SBBridge
           mcs -target:exe -sdk:4.8 -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Xml.dll -r:System.Core.dll -r:Microsoft.VisualBasic.dll \
             -out:/tmp/tests.exe ../../tests/LogicAndUiTests.cs $(find Core Platform UI -name '*.cs')
