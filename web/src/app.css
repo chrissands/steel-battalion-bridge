@@ -101,7 +101,9 @@ table.data tbody tr.on td:first-child { box-shadow: inset 3px 0 0 var(--colorPal
 .field fluent-dropdown, .field fluent-text-input { width: 100%; min-width: 0; }
 .field.inline { flex-direction: row; align-items: center; justify-content: space-between; }
 .section-label { font-size: var(--fontSizeBase200); font-weight: var(--fontWeightSemibold); color: var(--colorNeutralForeground3); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .04em; }
-#editorFields fluent-switch, .card > fluent-switch { margin: 4px 0 12px; }
+.switchrow { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; }
+.topbar .switchrow { margin: 0; }
+.switchrow label { cursor: pointer; }
 #platformToggles { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
 
 /* ---------- toast ---------- */

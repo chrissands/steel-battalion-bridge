@@ -74,10 +74,12 @@ function textInput(value, type, onInput, attrs = {}) {
   t.addEventListener("change", () => onInput(t.value));
   return t;
 }
+/** Fluent switch with a visible text label (v3 switches render no text of their own). */
 function toggle(label, checked, onChange) {
-  const s = el("fluent-switch", { checked: !!checked }, label);
+  const id = "s" + Math.random().toString(36).slice(2, 8);
+  const s = el("fluent-switch", { id, checked: !!checked, "aria-label": label });
   s.addEventListener("change", () => onChange(!!s.checked));
-  return s;
+  return el("div", { class: "switchrow" }, s, el("label", { for: id }, label));
 }
 
 /** Modal text prompt using fluent-dialog. Resolves to the text or null. */
@@ -193,7 +195,7 @@ function renderEditor() {
   const sel = (k, values, rerender, labels, opts) => dropdown(values, labels || values.map(human), b[k], set(k, rerender), opts);
 
   box.append(el("div", { class: "section-label" }, "Source"));
-  box.append(field("Control", sel("control", ["None"].concat(meta.controls.map(c => c.id)), true, ["(none)"].concat(meta.controls.map(c => c.name)), { combobox: true })));
+  box.append(field("Control", sel("control", ["None"].concat(meta.controls.map(c => c.id)), true, ["(none)"].concat(meta.controls.map(c => c.name)))));
   box.append(field("Layer", sel("layer", meta.layers), "Always = both layers. Normal only / Shifted only follow the Shift control."));
 
   box.append(el("div", { class: "section-label" }, "Output"));
@@ -201,7 +203,7 @@ function renderEditor() {
   if (b.output === "XboxButton") box.append(field("Xbox button", sel("xboxButton", meta.xboxButtons)));
   if (b.output === "XboxAxis") box.append(field("Xbox stick or trigger", sel("xboxAxis", meta.xboxAxes)));
   if (b.output === "Key") {
-    box.append(field("Key", sel("key", meta.keys, false, null, { combobox: true })));
+    box.append(field("Key", sel("key", meta.keys)));
     box.append(toggle("Hold Ctrl", b.withCtrl, set("withCtrl")), toggle("Hold Shift", b.withShift, set("withShift")), toggle("Hold Alt", b.withAlt, set("withAlt")));
   }
   if (b.output === "MouseButton") box.append(field("Mouse button", sel("mouseButton", meta.mouseButtons)));
@@ -323,7 +325,7 @@ let settingsBusy = false;
 async function loadSettings() {
   const s = await api("GET", "/api/settings");
   settingsBusy = true;
-  $("swLed").checked = s.ledFeedback;
+  $("swLed").checked = s.ledFeedback;  // switch + label wrapper in index.html
   $("slBright").value = String(s.ledBright); $("vBright").textContent = s.ledBright;
   $("slDim").value = String(s.ledDim); $("vDim").textContent = s.ledDim;
   const host = $("platformToggles"); host.innerHTML = "";

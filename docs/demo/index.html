@@ -13,7 +13,7 @@
   <div class="brand"><img src="icon.svg" alt="" width="28" height="28"><span>Steel Battalion Bridge</span></div>
   <div class="status" id="status"></div>
   <div class="spacer"></div>
-  <fluent-switch id="swOutput" label-position="before">Output</fluent-switch>
+  <div class="switchrow"><label for="swOutput">Output</label><fluent-switch id="swOutput" aria-label="Output enabled"></fluent-switch></div>
   <div class="profile">
     <span class="caption">Profile</span>
     <span id="profileHost"></span>
@@ -127,7 +127,7 @@
     <div class="grid2 even">
       <div class="card">
         <h2>Cockpit LEDs</h2>
-        <fluent-switch id="swLed">Light button LEDs when pressed and show the current gear</fluent-switch>
+        <div class="switchrow"><fluent-switch id="swLed" aria-label="LED feedback"></fluent-switch><label for="swLed">Light button LEDs when pressed and show the current gear</label></div>
         <div class="field"><label for="slBright">Pressed brightness <b id="vBright"></b></label><fluent-slider id="slBright" min="0" max="15" step="1"></fluent-slider></div>
         <div class="field"><label for="slDim">Idle brightness <b id="vDim"></b></label><fluent-slider id="slDim" min="0" max="15" step="1"></fluent-slider></div>
         <div id="platformToggles"></div>
