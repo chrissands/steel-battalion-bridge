@@ -13,6 +13,11 @@
     s.pad.buttons = (Math.floor(t) % 3 === 0) ? ["RightBumper", "A"] : [];
     s.down = ["Gear3", "Tuner4"].concat((Math.floor(t) % 3 === 0) ? ["MainWeapon", "WeaponConMagazine"] : []);
     s.outputEnabled = output; s.reportsPerSecond = 125;
+    if (location.hash === "#offline") {
+      s.connected = false; s.reportsPerSecond = 0; s.down = [];
+      s.usbStatus = "Controller found, but WinUSB isn't bound to it.";
+      s.actions = [{ id: "fix-driver", label: "Set up driver", description: "Installs the WinUSB driver for the controller", primary: true }];
+    }
     return s;
   }
   const json = (o, status) => Promise.resolve(new Response(JSON.stringify(o), { status: status || 200, headers: { "Content-Type": "application/json" } }));

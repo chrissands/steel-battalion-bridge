@@ -54,7 +54,7 @@ main { padding: 20px 24px 48px; max-width: 1440px; margin: 0 auto; }
 .tablewrap { max-height: calc(100vh - 250px); overflow: auto; border-radius: var(--borderRadiusMedium); }
 table.data { width: 100%; border-collapse: collapse; }
 table.data th {
-  position: sticky; top: 0; background: var(--colorNeutralBackground1); text-align: left;
+  position: sticky; top: 0; z-index: 1; background: var(--colorNeutralBackground1); text-align: left;
   font-weight: var(--fontWeightSemibold); color: var(--colorNeutralForeground2); font-size: var(--fontSizeBase200);
   padding: 8px 10px; border-bottom: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
 }
@@ -114,4 +114,4 @@ table.data tbody tr.on td:first-child { box-shadow: inset 3px 0 0 var(--colorPal
   transition: opacity var(--durationNormal) var(--curveEasyEase), transform var(--durationNormal) var(--curveEasyEase);
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
-#dlgInput { width: 100%; }
+#dlgInput { display: block; width: 100%; min-width: 360px; }

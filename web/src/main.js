@@ -53,7 +53,7 @@ function el(tag, attrs, ...kids) {
 }
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2600); }
 const ctl = id => meta.controls.find(c => c.id === id) || { id, name: "(none)", kind: "None" };
-const human = s => s.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^D(\d)$/, "$1").replace(/^NumPad/, "Numpad ");
+const human = s => s.replace(/^NumPad(\d)$/, "Numpad $1").replace(/^D(\d)$/, "$1").replace(/([a-z0-9])([A-Z])/g, "$1 $2");
 
 /** Fluent dropdown with options; `selected` attribute sets the initial value reliably. */
 function dropdown(values, labels, value, onChange, opts = {}) {
