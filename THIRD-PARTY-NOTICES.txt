@@ -1,0 +1,29 @@
+Steel Battalion Bridge - third-party components
+================================================
+
+SBBridge.exe (MIT, see LICENSE) is original code. The following components are
+included or referenced:
+
+1. libwdi - pki.c (certificate + catalog creation), used inside sbdriver.exe
+   Copyright (c) 2010-2023 Pete Batard <pete@akeo.ie>
+   License: GNU Lesser General Public License v3.0 (driver-helper/libwdi/COPYING-LGPL)
+   Source: https://github.com/pbatard/libwdi
+   sbdriver.exe's complete source is in driver-helper/ so it can be rebuilt/relinked
+   with a modified libwdi (see driver-helper/build.sh).
+
+2. ViGEmBus (bundled installer: redist/ViGEmBus_setup.exe, v1.22.0)
+   Copyright (c) 2016-2023 Nefarius Software Solutions e.U. and contributors
+   License: BSD 3-Clause
+   Source: https://github.com/nefarius/ViGEmBus
+   ViGEmBus is installed as-is by its own official, signed installer.
+
+3. ViGEmClient (protocol reference only - no code linked)
+   Copyright (c) Nefarius Software Solutions e.U. License: MIT
+   Source: https://github.com/nefarius/ViGEmClient
+
+4. Steel Battalion USB report layout cross-checked against SteelBattalion.NET
+   (J. Coutcher), libSteelBattalion (faha223) and the Teensy SBC library
+   (S. Saldana). No code from these projects is included.
+
+5. WinUSB (winusb.sys) is Microsoft's inbox driver that ships with Windows; it is
+   referenced by the generated INF, not redistributed.

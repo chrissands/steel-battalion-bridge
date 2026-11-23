@@ -1,0 +1,8 @@
+# Build outputs (attached to GitHub Releases instead)
+/SBBridge.exe
+/SBBridge-Setup-*.exe
+/driver-helper/sbdriver.exe
+/redist/
+bin/
+obj/
+*.o
