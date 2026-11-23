@@ -76,7 +76,9 @@ static class T
         var engine = new Engine(usb, pad, inp, settings) { Profile = store.Load(store.Names().First(n => n.StartsWith("Cockpit"))) };
         engine.Start();
         int port = 18000 + new Random().Next(2000);
-        var web = new WebServer(engine, settings, store, port) { InputStatus = "Virtual keyboard/mouse active", Log = s => { } };
+        var hooks = new LinuxHooks { InputStatusValue = "Virtual keyboard/mouse active" };
+        var api = new UiApi(engine, settings, store, hooks);
+        var web = new WebServer(api, port) { Log = s => { } };
         web.Start();
         Thread.Sleep(300);
         var http = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:" + port) };
@@ -93,16 +95,34 @@ static class T
         JsonNode J(HttpResponseMessage r) { return JsonNode.Parse(r.Content.ReadAsStringAsync().Result); }
 
         var html = http.GetStringAsync("/").Result;
-        Check(html.Contains("Steel Battalion") && html.Contains("<script>"), "GET / serves the UI");
+        Check(html.Contains("Steel Battalion") && html.Contains("app.js"), "GET / serves the UI");
+        var js = http.GetAsync("/app.js").Result;
+        Check(js.IsSuccessStatusCode && js.Content.Headers.ContentType.MediaType == "text/javascript" && js.Content.ReadAsStringAsync().Result.Contains("fluent-"), "GET /app.js serves the Fluent bundle");
+        Check(http.GetAsync("/").Result.Headers.Contains("Content-Security-Policy"), "UI page sends a Content-Security-Policy");
+        Check(http.GetAsync("/../etc/passwd").Result.StatusCode == HttpStatusCode.NotFound || !http.GetAsync("/../etc/passwd").Result.IsSuccessStatusCode, "no path traversal on static files");
+
+        // MiniJson round trip (shared by Windows + Linux)
+        var mj = MiniJson.Parse("{\"a\":[1,2.5,true,null,\"x\\u0041\"],\"b\":{\"c\":\"<tag>\"}}") as System.Collections.Generic.Dictionary<string, object>;
+        Check(mj != null && ((System.Collections.Generic.List<object>)mj["a"]).Count == 5 && (string)((System.Collections.Generic.List<object>)mj["a"])[4] == "xA", "MiniJson parses");
+        Check(MiniJson.Serialize(mj).Contains("\\u003ctag>"), "MiniJson escapes < for safe embedding");
+        var pb = new Binding(); MiniJson.Populate(pb, (System.Collections.Generic.Dictionary<string, object>)MiniJson.Parse("{\"control\":\"Comm2\",\"output\":\"Key\",\"key\":\"Prior\",\"threshold\":0.7,\"pulseMs\":80,\"invert\":true,\"bogus\":1}"));
+        Check(pb.Control == ControlId.Comm2 && pb.Output == OutputKind.Key && pb.Key == KeyCode.PageUp && pb.Threshold == 0.7 && pb.PulseMs == 80 && pb.Invert, "MiniJson.Populate fills a Binding (incl. legacy key name)");
+        var bj = MiniJson.Serialize(pb);
+        Check(bj.Contains("\"key\":\"PageUp\"") && !bj.Contains("keyXml") && !bj.Contains("sourceIsAxis"), "Binding serializes without internal properties");
         var meta = J(Send("GET", "/api/meta"));
-        Check(meta["controls"].AsArray().Count == Sbc.All.Length && meta["keys"].AsArray().Count > 100, "GET /api/meta");
+        Check(meta["controls"].AsArray().Count == Sbc.All.Length && meta["keys"].AsArray().Count > 100 && meta["platform"].GetValue<string>() == "linux", "GET /api/meta");
         var st = J(Send("GET", "/api/state"));
         Check(st["connected"].GetValue<bool>() && st["axes"]["AimingX"]["raw"].GetValue<int>() == 1023, "GET /api/state shows live controller data");
         Check(st["pad"]["rx"].GetValue<int>() == 32767, "state shows virtual pad output");
         Check(st["down"].AsArray().Any(x => x.GetValue<string>() == "Gear1"), "state shows gear position");
 
-        { var code = (int)Send("GET", "/api/state", host: "evil.example:" + port).StatusCode; Check(code >= 400 && code < 500, "foreign Host header rejected (DNS rebinding) -> " + code); }
-        Check(Send("POST", "/api/leds/test", header: false).StatusCode == HttpStatusCode.Forbidden, "write without X-SBBridge header rejected (CSRF)");
+        using (var evil = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:" + port) })
+        {
+            var m = new HttpRequestMessage(HttpMethod.Get, "/api/state"); m.Headers.Host = "evil.example:" + port; m.Headers.ConnectionClose = true;
+            var code = (int)evil.Send(m).StatusCode;
+            Check(code >= 400 && code < 500, "foreign Host header rejected (DNS rebinding) -> " + code);
+        }
+        { HttpResponseMessage rr = null; try { rr = Send("POST", "/api/leds/test", header: false); } catch (Exception ex) { Console.WriteLine("csrf ex " + ex.Message); } Check(rr != null && rr.StatusCode == HttpStatusCode.Forbidden, "write without X-SBBridge header rejected (CSRF) " + (rr == null ? "" : ((int)rr.StatusCode).ToString())); }
         Check(Send("POST", "/api/leds/test").IsSuccessStatusCode, "LED test");
 
         var prof = J(Send("GET", "/api/profile"));
@@ -149,7 +169,7 @@ static class T
             Console.Out.Flush();
             Thread.Sleep(int.Parse(args[1]) * 1000);
         }
-        web.Dispose(); engine.Dispose();
+        web.Dispose(); api.Dispose(); engine.Dispose();
         Directory.Delete(tmp, true);
         Console.WriteLine(fails == 0 ? "ALL PASSED" : fails + " FAILED");
         return fails == 0 ? 0 : 1;

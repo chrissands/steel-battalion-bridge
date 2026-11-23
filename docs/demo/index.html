@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Steel Battalion Bridge</title>
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><img src="icon.svg" alt="" width="28" height="28"><span>Steel Battalion Bridge</span></div>
+  <div class="status" id="status"></div>
+  <div class="spacer"></div>
+  <fluent-switch id="swOutput" label-position="before">Output</fluent-switch>
+  <div class="profile">
+    <span class="caption">Profile</span>
+    <span id="profileHost"></span>
+    <fluent-menu>
+      <fluent-menu-button slot="trigger" appearance="subtle" aria-label="Profile actions">Manage</fluent-menu-button>
+      <fluent-menu-list>
+        <fluent-menu-item id="miNew">New profile…</fluent-menu-item>
+        <fluent-menu-item id="miCopy">Duplicate…</fluent-menu-item>
+        <fluent-menu-item id="miRename">Rename…</fluent-menu-item>
+        <fluent-menu-item id="miDelete">Delete</fluent-menu-item>
+        <fluent-divider></fluent-divider>
+        <fluent-menu-item id="miDefaults">Restore built-in profiles</fluent-menu-item>
+      </fluent-menu-list>
+    </fluent-menu>
+  </div>
+</header>
+
+<nav class="tabs">
+  <fluent-tablist id="tabs" appearance="subtle">
+    <fluent-tab id="tab-live">Live view</fluent-tab>
+    <fluent-tab id="tab-bindings">Bindings</fluent-tab>
+    <fluent-tab id="tab-calibration">Calibration</fluent-tab>
+    <fluent-tab id="tab-settings">Settings</fluent-tab>
+  </fluent-tablist>
+</nav>
+
+<main>
+  <div id="bars"></div>
+
+  <section id="panel-live" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>Cockpit controls</h2>
+        <div class="controls" id="liveGrid"></div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <h2>Virtual Xbox 360 controller</h2>
+          <p class="hint">Exactly what Steam Input and games receive.</p>
+          <div class="sticks">
+            <div class="stick"><div class="ring"><i id="dotL"></i></div><span>Left stick</span></div>
+            <div class="stick"><div class="ring"><i id="dotR"></i></div><span>Right stick</span></div>
+            <div class="trig"><div class="tbar"><i id="trigL"></i></div><span>LT</span></div>
+            <div class="trig"><div class="tbar"><i id="trigR"></i></div><span>RT</span></div>
+          </div>
+          <div class="chips" id="padButtons"></div>
+        </div>
+        <div class="card">
+          <h2>USB report</h2>
+          <div class="mono" id="rawHex"></div>
+          <div class="row between">
+            <span class="hint" id="rate"></span>
+            <fluent-button id="btnLeds" appearance="secondary" size="small">Flash all LEDs</fluent-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-bindings" class="panel" hidden>
+    <div class="grid2 wide-right">
+      <div class="card">
+        <div class="toolbar">
+          <fluent-button id="btnLearn" appearance="primary">Learn</fluent-button>
+          <fluent-button id="btnAdd">Add</fluent-button>
+          <fluent-button id="btnDup">Duplicate</fluent-button>
+          <fluent-button id="btnRemove">Remove</fluent-button>
+          <fluent-button id="btnSort" appearance="subtle">Sort</fluent-button>
+          <div class="spacer"></div>
+          <span class="caption">Shift control</span>
+          <span id="shiftHost"></span>
+        </div>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>Control</th><th>Layer</th><th>Output</th><th>Mode</th><th>Note</th></tr></thead>
+            <tbody id="bindRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card editor">
+        <h2>Edit binding</h2>
+        <p class="hint" id="editorEmpty">Select a binding to edit it. Changes apply instantly and save automatically.</p>
+        <div id="editorFields"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-calibration" class="panel" hidden>
+    <div class="card">
+      <h2>Calibration</h2>
+      <ol class="steps">
+        <li>Select <b>Start</b>.</li>
+        <li>Move both levers, the sight-change stick and all three pedals through their full range a few times.</li>
+        <li>Let go of everything (levers centred, pedals released) and select <b>Finish</b>. The centre is taken from the resting position.</li>
+      </ol>
+      <div class="toolbar">
+        <fluent-button id="btnCalStart" appearance="primary">Start</fluent-button>
+        <fluent-button id="btnCalFinish" disabled>Finish</fluent-button>
+        <fluent-button id="btnCalCancel" appearance="subtle" disabled>Cancel</fluent-button>
+        <div class="spacer"></div>
+        <fluent-button id="btnCalReset" appearance="subtle">Reset to defaults</fluent-button>
+      </div>
+      <table class="data">
+        <thead><tr><th>Axis</th><th>Raw</th><th>Min</th><th>Centre</th><th>Max</th><th>Output</th><th></th></tr></thead>
+        <tbody id="calRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="panel-settings" class="panel" hidden>
+    <div class="grid2 even">
+      <div class="card">
+        <h2>Cockpit LEDs</h2>
+        <fluent-switch id="swLed">Light button LEDs when pressed and show the current gear</fluent-switch>
+        <div class="field"><label for="slBright">Pressed brightness <b id="vBright"></b></label><fluent-slider id="slBright" min="0" max="15" step="1"></fluent-slider></div>
+        <div class="field"><label for="slDim">Idle brightness <b id="vDim"></b></label><fluent-slider id="slDim" min="0" max="15" step="1"></fluent-slider></div>
+        <div id="platformToggles"></div>
+      </div>
+      <div class="card">
+        <h2>About</h2>
+        <p>Steel Battalion Bridge turns the controller into a virtual <b>Xbox 360 controller</b>, which Steam Input and games see like a real one.
+           An Xbox pad has 15 buttons and 6 axes. The cockpit's flight controls go to the pad, and the rest go to keyboard keys you bind in-game, or to a <b>Shift</b> layer.</p>
+        <p class="hint" id="serviceHint"></p>
+        <p class="hint" id="version"></p>
+        <fluent-link href="https://github.com/chrissands/steel-battalion-bridge" target="_blank">Project page and documentation</fluent-link>
+      </div>
+    </div>
+  </section>
+</main>
+
+<fluent-dialog id="dlg" type="modal">
+  <fluent-dialog-body>
+    <span slot="title" id="dlgTitle"></span>
+    <fluent-text-input id="dlgInput"></fluent-text-input>
+    <fluent-button slot="action" id="dlgCancel">Cancel</fluent-button>
+    <fluent-button slot="action" id="dlgOk" appearance="primary">OK</fluent-button>
+  </fluent-dialog-body>
+</fluent-dialog>
+<div class="toast" id="toast" role="status"></div>
+<script src="mock.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "sbbridge-ui",
+  "private": true,
+  "version": "1.2.0",
+  "description": "Shared Fluent 2 UI for Steel Battalion Bridge (Windows WebView2 + Linux browser)",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": {
+    "@fluentui/tokens": "1.0.0-alpha.24",
+    "@fluentui/web-components": "3.2.2",
+    "@microsoft/fast-element": "3.1.4",
+    "esbuild": "0.28.2"
+  }
+}

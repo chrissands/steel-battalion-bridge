@@ -42,7 +42,9 @@ namespace SBBridge.Linux
             engine.OutputEnabled = settings.OutputEnabled;
             engine.Start();
 
-            var web = new WebServer(engine, settings, store, port) { InputStatus = inputStatus };
+            var hooks = new LinuxHooks { InputStatusValue = inputStatus };
+            var api = new UiApi(engine, settings, store, hooks) { Version = typeof(Program).Assembly.GetName().Version.ToString(3) };
+            var web = new WebServer(api, port);
             try { web.Start(); }
             catch (Exception e) { Console.Error.WriteLine("Could not start web UI on port " + port + ": " + e.Message + " (is another copy running?)"); engine.Dispose(); return 1; }
 
@@ -58,14 +60,15 @@ namespace SBBridge.Linux
                 while (!quit.Wait(2000))
                 {
                     // /dev/uinput access can appear after login (udev ACL) - keep retrying the virtual keyboard.
-                    if (!injector.IsReady && injector.Open()) { web.InputStatus = "Virtual keyboard/mouse active"; Console.WriteLine("Keyboard/mouse: active"); }
-                    else if (!injector.IsReady) web.InputStatus = injector.LastError;
+                    if (!injector.IsReady && injector.Open()) { hooks.InputStatusValue = "Virtual keyboard/mouse active"; Console.WriteLine("Keyboard/mouse: active"); }
+                    else if (!injector.IsReady) hooks.InputStatusValue = injector.LastError;
                     string s = "controller: " + (engine.Connected ? "connected" : engine.UsbStatus) + " | pad: " + engine.PadStatus;
                     if (s != last) { Console.WriteLine(s); last = s; }
                 }
             }
             Console.WriteLine("Shutting down...");
             web.Dispose();
+            api.Dispose();
             engine.Dispose();
             injector.Dispose();
             settings.Save();
