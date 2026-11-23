@@ -16,6 +16,19 @@ permissions:
   contents: write
 
 jobs:
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rebuild the Fluent UI bundle and check it matches web/dist
+        run: |
+          cd web && npm ci && npm run build
+          git diff --stat --exit-code -- dist ../docs/demo || (echo "web/dist is stale: run 'npm run build' in web/ and commit" && exit 1)
+
   version:
     runs-on: ubuntu-24.04
     outputs:
@@ -41,10 +54,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build SBBridge.exe (.NET Framework 4.8)
+      - name: Build SBBridge.exe (.NET Framework 4.8 + WebView2)
         run: |
           dotnet build src/SBBridge/SBBridge.csproj -c Release -p:Version=${{ needs.version.outputs.version }}
-          cp src/SBBridge/bin/Release/net48/SBBridge.exe SBBridge.exe
+          mkdir -p dist/win
+          cp -r src/SBBridge/bin/Release/net48/. dist/win/
+          rm -f dist/win/*.pdb dist/win/*.xml
+          find dist/win -type f | sort
+          cp dist/win/SBBridge.exe SBBridge.exe
 
       - name: Build sbdriver.exe (MinGW)
         run: |

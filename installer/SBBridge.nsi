@@ -7,7 +7,7 @@ SetCompressor /SOLID lzma
 !define APP_NAME      "Steel Battalion Bridge"
 !define APP_EXE       "SBBridge.exe"
 !ifndef APP_VERSION
-  !define APP_VERSION "1.0.0"
+  !define APP_VERSION "1.2.0"
 !endif
 !define PUBLISHER     "Steel Battalion Bridge contributors"
 !define UNINST_KEY    "Software\Microsoft\Windows\CurrentVersion\Uninstall\SteelBattalionBridge"
@@ -81,6 +81,17 @@ Function un.onInit
   SetRegView 64
 FunctionEnd
 
+Function CheckWebView2
+  ; WebView2 Runtime ships with Windows 11 and current Windows 10. Offer the download if it's missing.
+  ReadRegStr $0 HKLM "SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
+  StrCmp $0 "" 0 done
+  ReadRegStr $0 HKCU "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
+  StrCmp $0 "" 0 done
+  MessageBox MB_YESNO|MB_ICONINFORMATION "Steel Battalion Bridge's window uses the Microsoft Edge WebView2 Runtime, which isn't installed on this PC.$\r$\n$\r$\nOpen the Microsoft download page now?" IDNO done
+  ExecShell "open" "https://developer.microsoft.com/microsoft-edge/webview2/"
+  done:
+FunctionEnd
+
 Function LaunchApp
   ; Start the app as the normal (non-elevated) desktop user.
   Exec '"$WINDIR\explorer.exe" "$INSTDIR\${APP_EXE}"'
@@ -94,7 +105,8 @@ Section "Steel Battalion Bridge app (required)" SecApp
   Sleep 500
 
   SetOutPath "$INSTDIR"
-  File "${ROOT}\SBBridge.exe"
+  ; App + WebView2 libraries (staged by CI from src/SBBridge/bin/Release/net48)
+  File /r "${ROOT}\dist\win\*.*"
   File "${ROOT}\driver-helper\sbdriver.exe"
   File "${ROOT}\README.md"
   File "${ROOT}\LICENSE"
@@ -120,6 +132,7 @@ Section "Steel Battalion Bridge app (required)" SecApp
   WriteRegStr HKLM "${UNINST_KEY}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
   WriteRegDWORD HKLM "${UNINST_KEY}" "NoModify" 1
   WriteRegDWORD HKLM "${UNINST_KEY}" "NoRepair" 1
+  Call CheckWebView2
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
   IntFmt $0 "0x%08X" $0
   WriteRegDWORD HKLM "${UNINST_KEY}" "EstimatedSize" "$0"
@@ -190,6 +203,10 @@ Section "Uninstall"
   skipdriver:
 
   Delete "$INSTDIR\${APP_EXE}"
+  Delete "$INSTDIR\${APP_EXE}.config"
+  Delete "$INSTDIR\Microsoft.Web.WebView2.*.dll"
+  Delete "$INSTDIR\WebView2Loader.dll"
+  RMDir /r "$INSTDIR\runtimes"
   Delete "$INSTDIR\sbdriver.exe"
   Delete "$INSTDIR\README.md"
   Delete "$INSTDIR\LICENSE"

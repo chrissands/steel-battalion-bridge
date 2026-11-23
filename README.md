@@ -118,25 +118,38 @@ If a status line in the app is red, click the button next to it (*Set up driver.
 - Changes apply live and save automatically. Profiles are XML files in
   `%AppData%\SBBridge\Profiles`, so they're easy to share or back up.
 
+## The app
+
+Both platforms use the same UI, built with Microsoft's **Fluent 2** design system (Fluent UI Web
+Components). It follows your OS's light or dark theme.
+
+- **Windows:** a normal app window (WebView2) plus a tray icon. The UI is served inside the app, so
+  no network port is opened.
+- **Linux:** a background service with the same UI at <http://127.0.0.1:8732/>.
+- **Preview** the UI without a controller: [docs/demo](docs/demo/index.html) uses a mocked API.
+
 ## Building from source
 
-- Windows: `dotnet build -c Release src/SBBridge`, or open the `.csproj` in Visual Studio 2022.
-- Linux (how the release was built): `./build-installer.sh 1.0.0` builds `SBBridge.exe`
-  (Mono `mcs`), `sbdriver.exe` (mingw-w64) and the installer (NSIS). Requirements:
-  `apt install mono-devel mingw-w64 nsis`.
-- Tests: `tests/LogicAndUiTests.cs` covers the report parsing, mapping, profile round-trip,
-  the engine with fake devices, and a UI smoke test. Run it under Mono with the same compiler flags as `build.sh`.
+- **Windows app:** `dotnet build -c Release src/SBBridge` on Windows (.NET SDK 8+; it targets .NET
+  Framework 4.8 and pulls the WebView2 package). CI builds the app, `sbdriver.exe` (MinGW) and the NSIS
+  installer on a `windows-2022` runner. See `.github/workflows/build.yml`.
+- **Linux service:** `./build-linux.sh` (.NET 8 SDK).
+- **UI:** `cd web && npm ci && npm run build` rebuilds `web/dist`. The output is committed, so the
+  app builds don't need Node.
+- **Tests:** `tests/LogicAndUiTests.cs` (core + UI API, run on real Windows in CI via `tests/windows`) and
+  `tests/linux` (uinput layouts, key map, web API end to end).
 
 ## Project layout
 
 ```
+web/                 shared Fluent 2 UI (src/ -> dist/ via esbuild), used by both platforms
 installer/           NSIS installer script + icon
 driver-helper/       sbdriver.exe source (WinUSB INF + local catalog signing; libwdi pki.c, LGPL)
 redist/              official ViGEmBus installer (BSD-3)
 src/SBBridge/
-  Core/              platform-neutral: protocol, mapper, engine, profiles (shared with Linux)
+  Core/              platform-neutral: protocol, mapper, engine, profiles, UI API (shared with Linux)
   Platform/Windows/  WinUSB transport, ViGEmBus virtual pad, SendInput
-  UI/                WinForms binding utility (tray app)
+  UI/                WebView2 window + tray icon hosting the shared UI
 docs/LINUX.md        Linux / Bazzite guide
 linux/               Linux install / uninstall scripts
 src/SBBridge.Linux/  Linux service: libusb transport, uinput Xbox 360 pad + keyboard, web UI

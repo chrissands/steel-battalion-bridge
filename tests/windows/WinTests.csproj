@@ -11,9 +11,9 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../src/SBBridge/**/*.cs" Exclude="../../src/SBBridge/Program.cs;../../src/SBBridge/obj/**;../../src/SBBridge/bin/**" />
+    <Compile Include="../../src/SBBridge/**/*.cs" Exclude="../../src/SBBridge/Program.cs;../../src/SBBridge/UI/**;../../src/SBBridge/obj/**;../../src/SBBridge/bin/**" />
+    <EmbeddedResource Include="../../web/dist/*" LogicalName="web/%(Filename)%(Extension)" />
     <Compile Include="../LogicAndUiTests.cs" />
-    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Xml" />
   </ItemGroup>
 </Project>

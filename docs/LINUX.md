@@ -2,7 +2,8 @@
 
 On Linux, Steel Battalion Bridge runs as a **background service** that turns the controller into a
 virtual **Xbox 360 controller**. Steam Input, SDL and games pick it up natively, in both Desktop Mode
-and Gaming Mode. You change bindings in a **settings page in your browser**.
+and Gaming Mode. You change bindings in a **settings page in your browser**. It's the same Fluent 2 UI
+as the Windows app.
 
 ## Install
 
@@ -71,7 +72,7 @@ adds three Linux backends:
 | USB transport | libusb-1.0 (interface 0, interrupt IN 0x82 / OUT 0x01) |
 | Virtual Xbox 360 pad | uinput device `045e:028e` "Microsoft X-Box 360 pad", same event layout as the kernel's `xpad` driver |
 | Keyboard / mouse | a second uinput device (keys, buttons, relative motion, wheel) |
-| UI | a local web page served by the service on `127.0.0.1:8732` only. It rejects other Host headers, and every change needs a custom header that other websites can't send, which blocks cross-site requests. |
+| UI | the shared Fluent 2 UI (`web/dist`), served by the service on `127.0.0.1:8732` only. It rejects other Host headers, and every change needs a custom header that other websites can't send, which blocks cross-site requests. |
 
 The release binary is a self-contained .NET 8 single file, so no runtime needs to be installed. Build
 it with `./build-linux.sh` (needs the .NET 8 SDK).

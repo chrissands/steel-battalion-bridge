@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SBBridge.Core;
 
-namespace SBBridge.Linux
+
+namespace SBBridge.Core
 {
-    /// <summary>Profiles as XML files in ~/.config/SBBridge/Profiles (same format as Windows).</summary>
+    /// <summary>Profiles as XML files in the settings folder (%APPDATA% or ~/.config)/SBBridge/Profiles.</summary>
     public sealed class ProfileStore
     {
         readonly string folder;

@@ -30,6 +30,8 @@ namespace SBBridge.Core
         public bool Connected { get { return connected; } }
         public string UsbStatus { get; private set; }
         public string PadStatus { get; private set; }
+        /// <summary>True while the virtual Xbox pad exists.</summary>
+        public bool PadOk { get { return pad.IsConnected; } }
         public int ReportsPerSecond { get; private set; }
         PadReport lastPad; readonly object padLock = new object();
         public PadReport LastPad { get { lock (padLock) return lastPad; } }

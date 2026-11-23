@@ -5,11 +5,10 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../src/SBBridge/Core/**/*.cs" Link="Core/%(Filename)%(Extension)" />
     <Compile Include="../../src/SBBridge.Linux/*.cs" Exclude="../../src/SBBridge.Linux/Program.cs" Link="Linux/%(Filename)%(Extension)" />
-    <EmbeddedResource Include="../../src/SBBridge.Linux/web/index.html" LogicalName="index.html" />
+    <EmbeddedResource Include="../../web/dist/*" LogicalName="web/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

@@ -25,5 +25,13 @@ included or referenced:
    (J. Coutcher), libSteelBattalion (faha223) and the Teensy SBC library
    (S. Saldana). No code from these projects is included.
 
-5. WinUSB (winusb.sys) is Microsoft's inbox driver that ships with Windows; it is
+5. Fluent UI Web Components and design tokens (bundled in web/dist/app.js)
+   Copyright (c) Microsoft Corporation. License: MIT
+   Source: https://github.com/microsoft/fluentui  (also @microsoft/fast-element, MIT)
+
+6. Microsoft Edge WebView2 SDK (Microsoft.Web.WebView2.*.dll, WebView2Loader.dll; Windows app)
+   Copyright (c) Microsoft Corporation. Redistributed under the WebView2 SDK license
+   (https://www.nuget.org/packages/Microsoft.Web.WebView2/ - see the package license).
+
+7. WinUSB (winusb.sys) is Microsoft's inbox driver that ships with Windows; it is
    referenced by the generated INF, not redistributed.

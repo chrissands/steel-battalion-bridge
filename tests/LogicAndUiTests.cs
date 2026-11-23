@@ -3,6 +3,14 @@ class FakeUsb : IControllerTransport { public byte[] Rep = new byte[26]; public 
  public bool TryOpen(){IsOpen=true;return true;} public int Read(byte[] b,int t){System.Threading.Thread.Sleep(4);Buffer.BlockCopy(Rep,0,b,0,26);return 26;} public byte[] LastWrite; public bool Write(byte[] d){LastWrite=(byte[])d.Clone();return true;} public void Close(){IsOpen=false;} public void Dispose(){} }
 class FakePad : IVirtualGamepad { public PadReport R; public bool IsConnected{get;set;} public string LastError{get{return "x";}} public bool Connect(){IsConnected=true;return true;} public bool Submit(PadReport r){R=r;return true;} public void Disconnect(){IsConnected=false;} public void Dispose(){} }
 class FakeIn : IInputInjector { public string Log=""; public void Key(KeyCode k,bool d){Log+=(d?"+":"-")+k+" ";} public void MouseButton(MouseButtonId b,bool d){Log+=(d?"+":"-")+b+" ";} public void Wheel(int n){Log+="W"+n+" ";} public void MouseMove(int x,int y){} }
+class TestHooks : IPlatformHooks {
+  public static string LastToggle;
+  public string Platform { get { return "windows"; } } public string InputStatus { get { return "Virtual keyboard/mouse active"; } } public string ServiceHint { get { return ""; } }
+  public System.Collections.Generic.IList<PlatformAction> Actions(Engine e) { return new System.Collections.Generic.List<PlatformAction>(); }
+  public string RunAction(string id) { return "ran " + id; }
+  public System.Collections.Generic.IList<PlatformToggle> Toggles() { return new System.Collections.Generic.List<PlatformToggle>(); }
+  public void SetToggle(string id, bool v) { LastToggle = id + "=" + v; }
+}
 static class T {
  static void Check(bool c,string m){Console.WriteLine((c?"PASS ":"FAIL ")+m); if(!c) Environment.ExitCode=1;}
  static void Main(){
@@ -43,13 +51,27 @@ static class T {
   e.Dispose(); Check(inp.Log.Contains("-D1"),"keys released on shutdown");
   Check(System.Runtime.InteropServices.Marshal.SizeOf(typeof(SBBridge.Platform.Windows.Native.INPUT))==40,"INPUT size 40");
  
-  // UI smoke test
-  var ui=new SBBridge.UI.MainForm(new Engine(new FakeUsb{Rep=rep},new FakePad(),new FakeIn(),st),st,false);
-  var tm=new System.Windows.Forms.Timer{Interval=2500}; tm.Tick+=(a,b)=>{tm.Stop();
-    var tabs=(TabControl)ui.Controls[0]; foreach(Control c in ui.Controls) if(c is TabControl) tabs=(TabControl)c;
-    for(int i=0;i<tabs.TabCount;i++){ tabs.SelectedIndex=i; Application.DoEvents(); for(int w=0;w<20;w++){Application.DoEvents(); System.Threading.Thread.Sleep(30);} try { System.Diagnostics.Process.Start("import","-window root /tmp/tab"+i+".png").WaitForExit(); } catch { } }
-    ui.Close();};
-  Application.ThreadException+=(a,b)=>{Console.WriteLine("FAIL UI exception "+b.Exception); Environment.ExitCode=1;};
-  st.CloseToTray=false; tm.Start(); Application.Run(ui); Console.WriteLine("PASS UI ran 2.5s without exceptions");
+  // Shared UI API (same code the WebView2 window and the Linux service use)
+  var dir=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"sbapi"+Guid.NewGuid().ToString("N"));
+  var store=new ProfileStore(dir); store.EnsureDefaults();
+  var e2=new Engine(new FakeUsb{Rep=rep},new FakePad(),new FakeIn(),st){Profile=store.Load(store.Names()[0])}; e2.Start(); System.Threading.Thread.Sleep(200);
+  var api=new UiApi(e2,st,store,new TestHooks());
+  var meta=api.Handle("GET","/api/meta",null);
+  Check(meta.Status==200 && meta.Json.Contains("\"platform\":\"windows\"") && meta.Json.Contains("\"AimingX\""),"UiApi meta");
+  var state=api.Handle("GET","/api/state",null);
+  Check(state.Status==200 && state.Json.Contains("\"connected\":true") && state.Json.Contains("\"actions\":[]"),"UiApi state");
+  var prof=api.Handle("GET","/api/profile",null);
+  Check(prof.Json.Contains("\"bindings\":[") && !prof.Json.Contains("keyXml"),"UiApi profile JSON");
+  var put=api.Handle("PUT","/api/profile","{\"shiftControl\":\"Comm5\",\"bindings\":[{\"control\":\"Comm1\",\"output\":\"Key\",\"key\":\"F10\"}]}");
+  var reloaded=store.Load(e2.Profile.Name);
+  Check(put.Status==200 && reloaded.Bindings.Count==1 && reloaded.Bindings[0].Key==KeyCode.F10 && reloaded.ShiftControl==ControlId.Comm5,"UiApi PUT profile saves XML");
+  Check(api.Handle("POST","/api/profiles/new","{\"name\":\"..\\\\evil\"}").Status==400,"UiApi rejects bad profile names");
+  Check(api.Handle("GET","/api/nope",null).Status==404 && api.Handle("PUT","/api/profile","{bad").Status==400,"UiApi errors");
+  var setr=api.Handle("PUT","/api/settings","{\"ledBright\":40,\"toggles\":{\"demo\":true}}");
+  Check(st.LedBright==15 && TestHooks.LastToggle=="demo=True","UiApi settings + platform toggles");
+  Check(api.Handle("POST","/api/action","{\"id\":\"fix-driver\"}").Json.Contains("ran fix-driver"),"UiApi platform action");
+  Check(WebAssets.Get("index.html")!=null && WebAssets.Get("app.js")!=null && WebAssets.Get("../secret")==null,"embedded web assets");
+  api.Dispose(); e2.Dispose();
+  try { System.IO.Directory.Delete(dir,true); } catch {}
  }
 }

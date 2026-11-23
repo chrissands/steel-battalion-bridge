@@ -10,14 +10,13 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Product>Steel Battalion Bridge</Product>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <DebugType>none</DebugType>
-    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../SBBridge/Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
-    <EmbeddedResource Include="web/index.html" LogicalName="index.html" />
+    <EmbeddedResource Include="../../web/dist/*" LogicalName="web/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>
