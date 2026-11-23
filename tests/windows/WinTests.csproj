@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runs tests/LogicAndUiTests.cs on real .NET Framework 4.8 + WinForms (CI windows runner). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>7.3</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/SBBridge/**/*.cs" Exclude="../../src/SBBridge/Program.cs;../../src/SBBridge/obj/**;../../src/SBBridge/bin/**" />
+    <Compile Include="../LogicAndUiTests.cs" />
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+</Project>

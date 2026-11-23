@@ -11,6 +11,9 @@
     <RootNamespace>SBBridge</RootNamespace>
     <Version>1.0.0</Version>
     <Product>Steel Battalion Bridge</Product>
+    <ApplicationIcon>../../installer/sbbridge.ico</ApplicationIcon>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
