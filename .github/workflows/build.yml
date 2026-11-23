@@ -24,13 +24,14 @@ jobs:
   windows:
     needs: version
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
       - name: Install toolchain (Mono, mingw-w64, NSIS)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends mono-devel mono-mcs libmono-system-windows-forms4.0-cil libgdiplus gcc-mingw-w64-x86-64 nsis xvfb
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends mono-devel mono-mcs libmono-system-windows-forms4.0-cil libgdiplus gcc-mingw-w64-x86-64 nsis xvfb
 
       - name: Build app, driver helper and installer
         run: ./build-installer.sh "${{ needs.version.outputs.version }}"
@@ -59,6 +60,7 @@ jobs:
   linux:
     needs: version
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
