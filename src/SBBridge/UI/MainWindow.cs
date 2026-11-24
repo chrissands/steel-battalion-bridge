@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using SBBridge.Core;
+using SBBridge.Platform.Windows;
 
 namespace SBBridge.UI
 {
@@ -22,14 +23,25 @@ namespace SBBridge.UI
         readonly Engine engine;
         readonly AppSettings settings;
         readonly WebView2 web;
+        readonly WindowsHooks hooks;
+        readonly OverlayWindow overlay;
+        readonly Timer overlaySync = new Timer { Interval = 50 };
         CoreWebView2Environment env;
         NotifyIcon tray;
-        ToolStripMenuItem trayOutput;
+        ToolStripMenuItem trayOutput, trayOverlay;
+        const int HotkeyId = 0x5342, WM_HOTKEY = 0x0312, MOD_CONTROL = 0x2, MOD_SHIFT = 0x4, MOD_NOREPEAT = 0x4000;
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool UnregisterHotKey(IntPtr hWnd, int id);
         bool exiting, startHidden, balloonShown;
 
-        public MainWindow(UiApi api, Engine engine, AppSettings settings, bool startMinimized)
+        public MainWindow(UiApi api, Engine engine, AppSettings settings, WindowsHooks hooks, bool startMinimized)
         {
-            this.api = api; this.engine = engine; this.settings = settings; startHidden = startMinimized;
+            this.api = api; this.engine = engine; this.settings = settings; this.hooks = hooks; startHidden = startMinimized;
+            overlay = new OverlayWindow(engine, settings);
+            hooks.OverlayChanged = v => { if (IsHandleCreated) BeginInvoke((Action)SyncOverlay); };
+            engine.OverlayToggled += () => { if (IsHandleCreated) BeginInvoke((Action)(() => hooks.SetOverlayVisible(!settings.OverlayVisible))); };
+            overlaySync.Tick += (s, e) => SyncOverlay();
+            overlaySync.Start();
             Text = "Steel Battalion Bridge";
             ClientSize = new Size(1320, 860);
             MinimumSize = new Size(900, 600);
@@ -41,6 +53,26 @@ namespace SBBridge.UI
             Controls.Add(web);
             BuildTray();
             Load += async (s, e) => await InitWebView();
+        }
+
+        /// <summary>Overlay shows if toggled on (hotkey, tray, app, cockpit toggle) or while a Hold-mode Overlay control is held.</summary>
+        void SyncOverlay()
+        {
+            bool want = settings.OverlayVisible || engine.OverlayHeld;
+            if (want) overlay.ShowOverlay(); else overlay.HideOverlay();
+            if (trayOverlay != null && trayOverlay.Checked != settings.OverlayVisible) trayOverlay.Checked = settings.OverlayVisible;
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            RegisterHotKey(Handle, HotkeyId, MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, (int)Keys.O);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_HOTKEY && m.WParam.ToInt32() == HotkeyId) { hooks.SetOverlayVisible(!settings.OverlayVisible); return; }
+            base.WndProc(ref m);
         }
 
         protected override void SetVisibleCore(bool value)
@@ -156,6 +188,9 @@ namespace SBBridge.UI
             trayOutput.CheckedChanged += (s, e) => { engine.OutputEnabled = settings.OutputEnabled = trayOutput.Checked; settings.Save(); };
             menu.Opening += (s, e) => trayOutput.Checked = engine.OutputEnabled;
             menu.Items.Add(trayOutput);
+            trayOverlay = new ToolStripMenuItem("Show control overlay   Ctrl+Shift+O") { Checked = settings.OverlayVisible };
+            trayOverlay.Click += (s, e) => hooks.SetOverlayVisible(!settings.OverlayVisible);
+            menu.Items.Add(trayOverlay);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Quit", null, (s, e) => { exiting = true; Close(); });
             tray = new NotifyIcon { Icon = Icon, Text = "Steel Battalion Bridge", Visible = true, ContextMenuStrip = menu };
@@ -183,12 +218,15 @@ namespace SBBridge.UI
                 return;
             }
             tray.Visible = false;
+            overlaySync.Stop();
+            overlay.HideOverlay();
+            if (IsHandleCreated) UnregisterHotKey(Handle, HotkeyId);
             base.OnFormClosing(e);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) { if (tray != null) tray.Dispose(); web.Dispose(); }
+            if (disposing) { if (tray != null) tray.Dispose(); web.Dispose(); overlay.Dispose(); overlaySync.Dispose(); }
             base.Dispose(disposing);
         }
     }

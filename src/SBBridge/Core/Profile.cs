@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 
 namespace SBBridge.Core
 {
-    public enum OutputKind { None, XboxButton, XboxAxis, Key, MouseButton, MouseMove }
+    public enum OutputKind { None, XboxButton, XboxAxis, Key, MouseButton, MouseMove, Overlay }
 
     public enum XboxButton
     {
@@ -74,10 +74,10 @@ namespace SBBridge.Core
         [Category("2. Output"), ShowFor(OutputKind.MouseMove), Description("Pixels per second at full deflection.")]
         public double MouseSpeed { get; set; }
 
-        [Category("3. Button behaviour"), ShowFor(OutputKind.XboxButton, OutputKind.Key, OutputKind.MouseButton, ButtonLikeOnly = true),
+        [Category("3. Button behaviour"), ShowFor(OutputKind.XboxButton, OutputKind.Key, OutputKind.MouseButton, OutputKind.Overlay, ButtonLikeOnly = true),
          Description("Hold = mirror the control. Pulse = short tap on press. PulseOnChange = tap whenever a latching switch flips either way. Toggle = press once on, press again off.")]
         public ButtonMode Mode { get; set; }
-        [Category("3. Button behaviour"), ShowFor(OutputKind.XboxButton, OutputKind.Key, OutputKind.MouseButton, ButtonLikeOnly = true), Description("Length of a pulse in milliseconds.")]
+        [Category("3. Button behaviour"), ShowFor(OutputKind.XboxButton, OutputKind.Key, OutputKind.MouseButton, OutputKind.Overlay, ButtonLikeOnly = true), Description("Length of a pulse in milliseconds.")]
         public int PulseMs { get; set; }
 
         [Category("4. Axis tuning"), ShowFor(OutputKind.XboxButton, OutputKind.Key, OutputKind.MouseButton, OutputKind.XboxAxis, AxisSourceOnly = true),
@@ -120,6 +120,7 @@ namespace SBBridge.Core
                     return "Key " + s + KeyName(Key);
                 case OutputKind.MouseButton: return "Mouse " + MouseButton;
                 case OutputKind.MouseMove: return "Mouse move " + MouseAxis;
+                case OutputKind.Overlay: return "Show overlay";
                 default: return "(none)";
             }
         }
@@ -209,11 +210,16 @@ namespace SBBridge.Core
         public bool StartMinimized { get; set; }
         public bool CloseToTray { get; set; }
         public bool OutputEnabled { get; set; }
+        public string OverlayCorner { get; set; }      // TopLeft | TopRight | BottomLeft | BottomRight
+        public double OverlayOpacity { get; set; }     // 0.3 .. 1
+        public double OverlayScale { get; set; }       // 0.75 .. 1.5
+        public bool OverlayVisible { get; set; }       // remembered between runs
         public List<AxisCalibration> Calibration { get; set; }
 
         public AppSettings()
         {
             LedFeedback = true; LedBright = 15; LedDim = 2; CloseToTray = true; OutputEnabled = true;
+            OverlayCorner = "TopRight"; OverlayOpacity = 0.9; OverlayScale = 1.0;
             Calibration = new List<AxisCalibration>();
         }
 

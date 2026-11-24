@@ -32,6 +32,9 @@ namespace SBBridge.Core
         string RunAction(string id);        // returns a message for the user
         IList<PlatformToggle> Toggles();
         void SetToggle(string id, bool value);
+        bool OverlaySupported { get; }      // native always-on-top overlay (Windows)
+        bool OverlayVisible { get; }
+        void SetOverlayVisible(bool visible);
     }
 
     public sealed class ApiResponse
@@ -107,6 +110,13 @@ namespace SBBridge.Core
                 case "POST /api/calibration/finish": return FinishCalibration();
                 case "POST /api/calibration/cancel": calibrating = false; lock (gate) calSeen.Clear(); return null;
                 case "POST /api/calibration/reset": lock (gate) { settings.Calibration.Clear(); settings.Save(); } return null;
+                case "GET /api/overlay": return Overlay();
+                case "POST /api/overlay":
+                    {
+                        var v = MiniJson.Bool(b, "visible");
+                        hooks.SetOverlayVisible(v ?? !hooks.OverlayVisible);
+                        return new Dictionary<string, object> { { "visible", hooks.OverlayVisible } };
+                    }
                 case "POST /api/action":
                     {
                         string id = MiniJson.Str(b, "id");
@@ -124,6 +134,7 @@ namespace SBBridge.Core
             return new Dictionary<string, object>
             {
                 { "version", Version }, { "platform", hooks.Platform }, { "serviceHint", hooks.ServiceHint },
+                { "overlaySupported", hooks.OverlaySupported },
                 { "controls", Sbc.All.Select(c => new Dictionary<string, object> {
                     { "id", c.Id.ToString() }, { "name", c.Name }, { "kind", c.Kind.ToString() },
                     { "bipolar", c.Bipolar }, { "calibratable", Sbc.IsCalibratable(c.Id) } }).ToList() },
@@ -167,9 +178,21 @@ namespace SBBridge.Core
                     { "down", down }, { "axes", axes }, { "gear", state.Gear }, { "tuner", state.Tuner },
                     { "pad", new Dictionary<string, object> { { "buttons", padButtons }, { "lx", pad.LX }, { "ly", pad.LY }, { "rx", pad.RX }, { "ry", pad.RY }, { "lt", pad.LeftTrigger }, { "rt", pad.RightTrigger } } },
                     { "calibrating", calibrating }, { "calibration", cal },
-                    { "actions", hooks.Actions(engine) },
+                    { "actions", hooks.Actions(engine) }, { "overlayVisible", hooks.OverlayVisible },
                 };
             }
+        }
+
+        object Overlay()
+        {
+            var s = new ControllerState();
+            engine.GetState(s);
+            var p = engine.Profile;
+            return new Dictionary<string, object>
+            {
+                { "profile", p.Name }, { "connected", engine.Connected }, { "shift", OverlayModel.ShiftHeld(p, s) },
+                { "groups", OverlayModel.Build(p, s, settings) },
+            };
         }
 
         object PutProfile(Dictionary<string, object> b)
@@ -236,6 +259,7 @@ namespace SBBridge.Core
             {
                 { "ledFeedback", settings.LedFeedback }, { "ledBright", settings.LedBright }, { "ledDim", settings.LedDim },
                 { "outputEnabled", settings.OutputEnabled }, { "toggles", hooks.Toggles() },
+                { "overlayCorner", settings.OverlayCorner }, { "overlayOpacity", settings.OverlayOpacity }, { "overlayScale", settings.OverlayScale },
             };
         }
 
@@ -244,6 +268,10 @@ namespace SBBridge.Core
             var led = MiniJson.Bool(b, "ledFeedback"); if (led.HasValue) settings.LedFeedback = led.Value;
             var br = MiniJson.Num(b, "ledBright"); if (br.HasValue) settings.LedBright = Clamp15(br.Value);
             var dm = MiniJson.Num(b, "ledDim"); if (dm.HasValue) settings.LedDim = Clamp15(dm.Value);
+            string corner = MiniJson.Str(b, "overlayCorner");
+            if (corner == "TopLeft" || corner == "TopRight" || corner == "BottomLeft" || corner == "BottomRight") settings.OverlayCorner = corner;
+            var op = MiniJson.Num(b, "overlayOpacity"); if (op.HasValue) settings.OverlayOpacity = Math.Max(0.3, Math.Min(1, op.Value));
+            var sc = MiniJson.Num(b, "overlayScale"); if (sc.HasValue) settings.OverlayScale = Math.Max(0.75, Math.Min(1.5, sc.Value));
             object t;
             if (b.TryGetValue("toggles", out t) && t is Dictionary<string, object>)
                 foreach (var kv in (Dictionary<string, object>)t) if (kv.Value is bool) hooks.SetToggle(kv.Key, (bool)kv.Value);

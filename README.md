@@ -126,6 +126,16 @@ Components). It follows your OS's light or dark theme.
 - **Windows:** a normal app window (WebView2) plus a tray icon. The UI is served inside the app, so
   no network port is opened.
 - **Linux:** a background service with the same UI at <http://127.0.0.1:8732/>.
+- **Control overlay:** a compact cheat sheet of what every bound control does, grouped by cockpit
+  panel. The control you're pressing lights up, and it follows the Shift layer.
+  - **Windows:** an always-on-top overlay that clicks through to the game. Toggle it with
+    **Ctrl+Shift+O**, the tray menu, the **Overlay** button, or a cockpit control bound to the
+    **Overlay** output (Hold mode shows it only while held). Set its corner, opacity and size in
+    Settings. It works over windowed and borderless games, not exclusive fullscreen.
+  - **Linux:** the same sheet at <http://127.0.0.1:8732/overlay.html>. Open it in Steam's overlay
+    browser in Gaming Mode, or on a second screen.
+  - **Tip:** write a short **Note** on each binding (for example "Fire weapon group 1"). The overlay
+    shows notes in place of key names.
 - **Preview** the UI without a controller: [docs/demo](docs/demo/index.html) uses a mocked API.
 
 ## Building from source

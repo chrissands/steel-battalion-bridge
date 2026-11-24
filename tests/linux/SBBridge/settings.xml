@@ -7,6 +7,10 @@
   <StartMinimized>false</StartMinimized>
   <CloseToTray>true</CloseToTray>
   <OutputEnabled>true</OutputEnabled>
+  <OverlayCorner>TopRight</OverlayCorner>
+  <OverlayOpacity>0.9</OverlayOpacity>
+  <OverlayScale>1</OverlayScale>
+  <OverlayVisible>false</OverlayVisible>
   <Calibration>
     <AxisCalibration>
       <Axis>AimingX</Axis>

@@ -140,7 +140,7 @@ async function flushSave() { if (saveTimer) { clearTimeout(saveTimer); await sav
 
 // ---------------------------------------------------------------- bindings list
 const isAxis = b => ctl(b.control).kind === "Axis";
-const buttonLike = b => ["XboxButton", "Key", "MouseButton"].includes(b.output);
+const buttonLike = b => ["XboxButton", "Key", "MouseButton", "Overlay"].includes(b.output);
 function targetText(b) {
   switch (b.output) {
     case "XboxButton": return "Xbox " + human(b.xboxButton);
@@ -148,6 +148,7 @@ function targetText(b) {
     case "Key": return "Key " + (b.withCtrl ? "Ctrl+" : "") + (b.withShift ? "Shift+" : "") + (b.withAlt ? "Alt+" : "") + human(b.key);
     case "MouseButton": return "Mouse " + human(b.mouseButton);
     case "MouseMove": return "Mouse " + b.mouseAxis + " movement";
+    case "Overlay": return "Show control overlay";
     default: return "—";
   }
 }
@@ -209,7 +210,10 @@ function renderEditor() {
   if (b.output === "MouseButton") box.append(field("Mouse button", sel("mouseButton", meta.mouseButtons)));
   if (b.output === "MouseMove") { box.append(field("Mouse axis", sel("mouseAxis", meta.mouseAxes))); box.append(field("Speed (pixels per second)", num("mouseSpeed", 0, 20000, 50))); }
 
-  if (bl && !axis) {
+  if (b.output === "Overlay" && !axis) {
+    box.append(el("div", { class: "section-label" }, "Behaviour"));
+    box.append(field("Mode", sel("mode", meta.modes), "Hold shows the overlay only while the control is held. Any other mode toggles it on and off with each press."));
+  } else if (bl && !axis) {
     box.append(el("div", { class: "section-label" }, "Behaviour"));
     box.append(field("Mode", sel("mode", meta.modes), "Hold mirrors the control. Pulse taps once on press. Pulse on change taps whenever a latching switch flips. Toggle latches on/off."));
     box.append(field("Pulse length (ms)", num("pulseMs", 10, 2000, 10)));
@@ -331,8 +335,40 @@ async function loadSettings() {
   const host = $("platformToggles"); host.innerHTML = "";
   if (s.toggles.length) host.append(el("div", { class: "section-label" }, "App"));
   for (const t of s.toggles) host.append(toggle(t.label, t.value, v => act(api("PUT", "/api/settings", { toggles: { [t.id]: v } }))));
+  renderOverlaySettings(s);
   settingsBusy = false;
 }
+
+// ---------------------------------------------------------------- control overlay
+function renderOverlaySettings(s) {
+  const host = $("overlaySettings"); host.innerHTML = "";
+  if (meta.overlaySupported) {
+    $("overlayIntro").textContent = "A small always-on-top cheat sheet of what each cockpit control does. Clicks go straight through it to the game. Toggle it with Ctrl+Shift+O, the tray menu, or a cockpit control bound to “Overlay”. It shows over windowed and borderless games, not exclusive fullscreen.";
+    const sw = toggle("Show overlay", st ? st.overlayVisible : false, v => act(api("POST", "/api/overlay", { visible: v })));
+    sw.querySelector("fluent-switch").id = "swOverlay";
+    host.append(sw);
+    const corners = ["TopLeft", "TopRight", "BottomLeft", "BottomRight"];
+    host.append(field("Position", dropdown(corners, corners.map(human), s.overlayCorner, v => act(api("PUT", "/api/settings", { overlayCorner: v })), { label: "Overlay position" })));
+    const slider = (label, key, min, max, value, fmt) => {
+      const sl = el("fluent-slider", { min, max, step: 5, value: String(Math.round(value * 100)) });
+      const out = el("b", {}, fmt(value));
+      sl.addEventListener("change", () => { out.textContent = fmt(+sl.value / 100); if (!settingsBusy) act(api("PUT", "/api/settings", { [key]: +sl.value / 100 })); });
+      const f = field(label + " ", sl); f.querySelector("label").append(out); return f;
+    };
+    host.append(slider("Opacity", "overlayOpacity", 30, 100, s.overlayOpacity, v => Math.round(v * 100) + "%"));
+    host.append(slider("Size", "overlayScale", 75, 150, s.overlayScale, v => Math.round(v * 100) + "%"));
+  } else {
+    $("overlayIntro").textContent = "A compact cheat sheet of what each cockpit control does, as a page you can keep open. In Gaming Mode, press the Steam button, open the web browser and go to " + location.origin + "/overlay.html. In Desktop Mode, open it on a second screen or next to the game.";
+    const b = el("fluent-button", { appearance: "primary" }, "Open overlay page");
+    b.addEventListener("click", () => window.open("overlay.html", "_blank"));
+    host.append(b);
+  }
+}
+$("btnOverlay").addEventListener("click", async () => {
+  if (!meta.overlaySupported) { window.open("overlay.html", "_blank"); return; }
+  const r = await act(api("POST", "/api/overlay", {}));
+  if (r) toast(r.visible ? "Overlay on (Ctrl+Shift+O to hide)" : "Overlay off");
+});
 const putLed = () => { if (settingsBusy) return; $("vBright").textContent = $("slBright").value; $("vDim").textContent = $("slDim").value;
   act(api("PUT", "/api/settings", { ledFeedback: !!$("swLed").checked, ledBright: +$("slBright").value, ledDim: +$("slDim").value })); };
 $("swLed").addEventListener("change", putLed); $("slBright").addEventListener("change", putLed); $("slDim").addEventListener("change", putLed);
@@ -378,6 +414,10 @@ function renderStatus() {
              badge(inputOk, true, inputOk ? "Keys active" : "Keys unavailable"));
   }
   if (document.activeElement !== $("swOutput")) $("swOutput").checked = st.outputEnabled;
+  if (meta.overlaySupported) {
+    $("btnOverlay").setAttribute("appearance", st.overlayVisible ? "primary" : "subtle");
+    const so = $("swOverlay"); if (so && document.activeElement !== so) so.checked = st.overlayVisible;
+  }
   for (const tr of $("bindRows").children) {
     const id = tr.dataset.control, c = ctl(id);
     tr.classList.toggle("on", c.kind === "Axis" ? (st.axes[id] && Math.abs(st.axes[id].value) > 0.25) : st.down.includes(id));

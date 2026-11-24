@@ -1,0 +1,17 @@
+/* Compact control cheat-sheet (Linux: Steam overlay browser / second screen; also any browser). */
+:root { color-scheme: dark; --bg: #18191d; --muted: #aab2ba; --text: #f0f3f5; --accent: rgba(71,158,245,.28); --group: #73b9ff; --shift: #f2b33d; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.35 "Segoe UI", system-ui, -apple-system, "Noto Sans", sans-serif; }
+header { display: flex; align-items: baseline; gap: 12px; padding: 12px 16px 4px; font-weight: 600; font-size: 16px; }
+#shift { color: var(--shift); font-size: 12px; letter-spacing: .08em; }
+#conn { color: #ff8a80; font-size: 12px; font-weight: 400; }
+main { columns: 330px auto; column-gap: 18px; padding: 0 16px 16px; }
+section { break-inside: avoid; margin-bottom: 4px; }
+h2 { margin: 10px 0 2px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--group); }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 1px 6px; margin: 0 -6px; border-radius: 4px; }
+.row .c { color: var(--muted); white-space: nowrap; }
+.row .a { text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row.on { background: var(--accent); }
+.row.on .c { color: var(--text); }
+.row.on .a { font-weight: 600; }
+[hidden] { display: none !important; }

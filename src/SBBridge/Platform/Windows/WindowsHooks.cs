@@ -17,6 +17,16 @@ namespace SBBridge.Platform.Windows
 
         public WindowsHooks(AppSettings settings) { this.settings = settings; }
 
+        /// <summary>Set by the main window: shows/hides the native overlay.</summary>
+        public Action<bool> OverlayChanged;
+        public bool OverlaySupported { get { return true; } }
+        public bool OverlayVisible { get { return settings.OverlayVisible; } }
+        public void SetOverlayVisible(bool visible)
+        {
+            settings.OverlayVisible = visible; settings.Save();
+            var h = OverlayChanged; if (h != null) h(visible);
+        }
+
         public string Platform { get { return "windows"; } }
         public string InputStatus { get { return "Virtual keyboard/mouse active"; } }
         public string ServiceHint { get { return "Runs in the system tray. Closing the window keeps the controller working; quit from the tray icon."; } }

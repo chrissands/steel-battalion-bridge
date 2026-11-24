@@ -38,6 +38,11 @@ Then plug in the controller (replug it if it was already connected) and open
 - **Profiles** are XML files in `~/.config/SBBridge/Profiles`, in the same format as the Windows
   version, so you can copy them between PCs.
 
+**Control overlay:** <http://127.0.0.1:8732/overlay.html> is a compact cheat sheet of what each
+cockpit control does. The control you're pressing lights up. In Gaming Mode, press the Steam button,
+open the web browser and load that address. It then sits in Steam's overlay, so you can open it
+mid-game. In Desktop Mode, keep it on a second screen.
+
 In Steam the virtual pad appears as an **Xbox 360 Controller**, so per-game Steam Input layouts work
 on top of SBBridge's bindings. Keys go through a virtual keyboard, which works under X11, Wayland and
 Gaming Mode (gamescope).

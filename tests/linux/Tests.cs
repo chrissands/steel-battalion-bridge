@@ -99,6 +99,7 @@ static class T
         var js = http.GetAsync("/app.js").Result;
         Check(js.IsSuccessStatusCode && js.Content.Headers.ContentType.MediaType == "text/javascript" && js.Content.ReadAsStringAsync().Result.Contains("fluent-"), "GET /app.js serves the Fluent bundle");
         Check(http.GetAsync("/").Result.Headers.Contains("Content-Security-Policy"), "UI page sends a Content-Security-Policy");
+        Check(http.GetStringAsync("/overlay.html").Result.Contains("overlay.js"), "GET /overlay.html serves the overlay page");
         Check(http.GetAsync("/../etc/passwd").Result.StatusCode == HttpStatusCode.NotFound || !http.GetAsync("/../etc/passwd").Result.IsSuccessStatusCode, "no path traversal on static files");
 
         // MiniJson round trip (shared by Windows + Linux)
@@ -114,6 +115,10 @@ static class T
         var st = J(Send("GET", "/api/state"));
         Check(st["connected"].GetValue<bool>() && st["axes"]["AimingX"]["raw"].GetValue<int>() == 1023, "GET /api/state shows live controller data");
         Check(st["pad"]["rx"].GetValue<int>() == 32767, "state shows virtual pad output");
+        var ov = J(Send("GET", "/api/overlay"));
+        var ovText = ov.ToJsonString();
+        Check(ov["groups"].AsArray().Count >= 6 && ovText.Contains("Fire weapon group 1") && ovText.Contains("\"title\":\"Sticks\""), "GET /api/overlay lists bound controls by panel");
+        Check(Send("POST", "/api/overlay", new { visible = true }).IsSuccessStatusCode && meta["overlaySupported"].GetValue<bool>() == false, "overlay toggle is a no-op on Linux (page instead)");
         Check(st["down"].AsArray().Any(x => x.GetValue<string>() == "Gear1"), "state shows gear position");
 
         using (var evil = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:" + port) })
