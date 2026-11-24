@@ -38,13 +38,14 @@ namespace SBBridge
                 engine.TimerResolutionHook = on => { if (on) Native.timeBeginPeriod(1); else Native.timeEndPeriod(1); };
                 engine.Start();
 
-                var api = new UiApi(engine, settings, store, new WindowsHooks(settings))
+                var hooks = new WindowsHooks(settings);
+                var api = new UiApi(engine, settings, store, hooks)
                 {
                     Version = typeof(Program).Assembly.GetName().Version.ToString(3)
                 };
 
                 bool minimized = settings.StartMinimized || Array.IndexOf(args, "--minimized") >= 0;
-                using (var window = new MainWindow(api, engine, settings, minimized))
+                using (var window = new MainWindow(api, engine, settings, hooks, minimized))
                 {
                     var listener = new Thread(() => { while (showSignal.WaitOne()) window.ShowWindow(); }) { IsBackground = true };
                     listener.Start();

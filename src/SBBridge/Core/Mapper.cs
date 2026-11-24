@@ -12,13 +12,15 @@ namespace SBBridge.Core
         public readonly bool[] Mouse = new bool[5];   // Left, Right, Middle, X1, X2
         public int Wheel;                              // notches this tick
         public int MouseDX, MouseDY;                   // whole pixels this tick
+        public bool OverlayHeld;                       // an Overlay binding (Hold mode) is held
+        public bool OverlayToggle;                     // an Overlay binding (other modes) was pressed this tick
         public readonly byte[] Leds = new byte[Sbc.LedReportSize];
 
         public void Reset()
         {
             Pad = new PadReport();
             Array.Clear(Keys, 0, Keys.Length); Array.Clear(Mouse, 0, Mouse.Length);
-            Wheel = 0; MouseDX = 0; MouseDY = 0;
+            Wheel = 0; MouseDX = 0; MouseDY = 0; OverlayHeld = false; OverlayToggle = false;
             Array.Clear(Leds, 0, Leds.Length);
         }
     }
@@ -154,6 +156,13 @@ namespace SBBridge.Core
                 }
                 bool outRising = output && !r.PrevOut;
                 r.PrevOut = output;
+                if (b.Output == OutputKind.Overlay)
+                {
+                    // Hold: visible while held. Any other mode: each press toggles the overlay.
+                    if (b.Mode == ButtonMode.Hold && kind != ControlKind.Event) { if (active) f.OverlayHeld = true; }
+                    else if (rising) f.OverlayToggle = true;
+                    continue;
+                }
                 if (!output) continue;
 
                 switch (b.Output)

@@ -10,6 +10,8 @@ class TestHooks : IPlatformHooks {
   public string RunAction(string id) { return "ran " + id; }
   public System.Collections.Generic.IList<PlatformToggle> Toggles() { return new System.Collections.Generic.List<PlatformToggle>(); }
   public void SetToggle(string id, bool v) { LastToggle = id + "=" + v; }
+  public bool OverlaySupported { get { return true; } } public bool Visible; public bool OverlayVisible { get { return Visible; } }
+  public void SetOverlayVisible(bool v) { Visible = v; }
 }
 static class T {
  static void Check(bool c,string m){Console.WriteLine((c?"PASS ":"FAIL ")+m); if(!c) Environment.ExitCode=1;}
@@ -51,6 +53,25 @@ static class T {
   e.Dispose(); Check(inp.Log.Contains("-D1"),"keys released on shutdown");
   Check(System.Runtime.InteropServices.Marshal.SizeOf(typeof(SBBridge.Platform.Windows.Native.INPUT))==40,"INPUT size 40");
  
+  // Control overlay model + Overlay output
+  { var rep2=new byte[26]; rep2[1]=0x1A; rep2[2]=0x01; var s2=new ControllerState(); s2.Parse(rep2,26);
+    var groups=OverlayModel.Build(DefaultProfiles.Cockpit(), s2, new AppSettings());
+    var sticks=groups.Find(g=>g.Title=="Sticks");
+    Check(sticks!=null && sticks.Rows.Exists(r=>r.Control=="Main Weapon" && r.Active && r.Action=="Fire weapon group 1"), "overlay: Main Weapon row active with its note");
+    Check(groups.Exists(g=>g.Title=="Comm" && g.Rows.Exists(r=>r.Control=="Comm 2" && r.Action=="2")), "overlay: key targets use short labels");
+    var op=new Profile(); op.Bindings.Add(new SBBridge.Core.Binding{Control=ControlId.Start, Output=OutputKind.Overlay, Mode=ButtonMode.Hold});
+    op.Bindings.Add(new SBBridge.Core.Binding{Control=ControlId.Eject, Output=OutputKind.Overlay, Mode=ButtonMode.Toggle});
+    op.Bindings.Add(new SBBridge.Core.Binding{Control=ControlId.Comm1, Output=OutputKind.Key, Key=KeyCode.F1, Layer=Layer.ShiftedOnly}); op.ShiftControl=ControlId.Comm5;
+    var mo=new Mapper(); var fo=new OutputFrame(); var st3=new AppSettings();
+    var r3=new byte[26]; r3[1]=0x1A; var s3=new ControllerState(); s3.Parse(r3,26); mo.Tick(s3,true,0,0.004,op,st3,fo);
+    r3[2]=0x40; s3.Parse(r3,26); mo.Tick(s3,true,10,0.004,op,st3,fo);
+    Check(fo.OverlayHeld && !fo.OverlayToggle, "Overlay output (Hold) shows while held");
+    r3[2]=0x08; s3.Parse(r3,26); mo.Tick(s3,true,20,0.004,op,st3,fo);
+    Check(!fo.OverlayHeld && fo.OverlayToggle, "Overlay output (Toggle) toggles on press");
+    var g0=OverlayModel.Build(op,s3,st3); r3[6]=0x01; s3.Parse(r3,26); var g1=OverlayModel.Build(op,s3,st3);
+    Check(!g0.Exists(g=>g.Rows.Exists(r=>r.Control=="Comm 1")) && g1.Exists(g=>g.Rows.Exists(r=>r.Control=="Comm 1")), "overlay follows the Shift layer");
+  }
+
   // Shared UI API (same code the WebView2 window and the Linux service use)
   var dir=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"sbapi"+Guid.NewGuid().ToString("N"));
   var store=new ProfileStore(dir); store.EnsureDefaults();
@@ -70,6 +91,7 @@ static class T {
   var setr=api.Handle("PUT","/api/settings","{\"ledBright\":40,\"toggles\":{\"demo\":true}}");
   Check(st.LedBright==15 && TestHooks.LastToggle=="demo=True","UiApi settings + platform toggles");
   Check(api.Handle("POST","/api/action","{\"id\":\"fix-driver\"}").Json.Contains("ran fix-driver"),"UiApi platform action");
+  Check(api.Handle("POST","/api/overlay","{}").Json.Contains("\"visible\":true") && api.Handle("GET","/api/overlay",null).Json.Contains("\"groups\""),"UiApi overlay toggle + data");
   Check(WebAssets.Get("index.html")!=null && WebAssets.Get("app.js")!=null && WebAssets.Get("../secret")==null,"embedded web assets");
   api.Dispose(); e2.Dispose();
   try { System.IO.Directory.Delete(dir,true); } catch {}

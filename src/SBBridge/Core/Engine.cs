@@ -36,6 +36,11 @@ namespace SBBridge.Core
         PadReport lastPad; readonly object padLock = new object();
         public PadReport LastPad { get { lock (padLock) return lastPad; } }
 
+        /// <summary>True while a cockpit control bound to Overlay (Hold mode) is held.</summary>
+        public bool OverlayHeld { get; private set; }
+        /// <summary>Raised (on the mapper thread) when a cockpit control bound to Overlay is pressed in a toggle mode.</summary>
+        public event Action OverlayToggled;
+
         /// <summary>Optional hook to raise OS timer resolution (Windows: timeBeginPeriod).</summary>
         public Action<bool> TimerResolutionHook;
 
@@ -130,6 +135,8 @@ namespace SBBridge.Core
                         else { pad.Disconnect(); PadStatus = pad.LastError; }
                     }
                     lock (padLock) lastPad = frame.Pad;
+                    OverlayHeld = frame.OverlayHeld;
+                    if (frame.OverlayToggle) { var h = OverlayToggled; if (h != null) try { h(); } catch { } }
 
                     // Keyboard: modifiers go down first, come up last
                     ApplyKeys(frame.Keys, heldKeys);

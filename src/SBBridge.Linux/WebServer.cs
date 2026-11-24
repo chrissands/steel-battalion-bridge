@@ -108,5 +108,8 @@ namespace SBBridge.Linux
         public string RunAction(string id) { return "Not available on Linux."; }
         public IList<PlatformToggle> Toggles() { return new List<PlatformToggle>(); }
         public void SetToggle(string id, bool value) { }
+        public bool OverlaySupported { get { return false; } }
+        public bool OverlayVisible { get { return false; } }
+        public void SetOverlayVisible(bool visible) { }
     }
 }

@@ -21,12 +21,12 @@ namespace SBBridge.Core
             var b = p.Bindings;
             // Analog
             b.Add(Stick(ControlId.AimingX, XboxAxis.RightStickX, false, "Aim / torso twist"));
-            b.Add(Stick(ControlId.AimingY, XboxAxis.RightStickY, true, "Aim pitch - flip Invert if backwards"));
+            b.Add(Stick(ControlId.AimingY, XboxAxis.RightStickY, true, "Aim pitch"));
             b.Add(Stick(ControlId.RotationLever, XboxAxis.LeftStickX, false, "Turn / leg rotation"));
-            b.Add(Stick(ControlId.GearAxis, XboxAxis.LeftStickY, false, "Gear lever as throttle: R=back, N=stop, 5=full"));
+            b.Add(Stick(ControlId.GearAxis, XboxAxis.LeftStickY, false, "Throttle (R · N · 1–5)"));
             b.Add(Stick(ControlId.RightPedal, XboxAxis.RightTrigger, false, "Accelerator"));
             b.Add(Stick(ControlId.MiddlePedal, XboxAxis.LeftTrigger, false, "Brake"));
-            b.Add(new Binding { Control = ControlId.LeftPedal, Output = OutputKind.XboxButton, XboxButton = XboxButton.LeftStickClick, Threshold = 0.5, Note = "Slide pedal = boost / jump jets" });
+            b.Add(new Binding { Control = ControlId.LeftPedal, Output = OutputKind.XboxButton, XboxButton = XboxButton.LeftStickClick, Threshold = 0.5, Note = "Boost / jump jets" });
             // Sight change thumbstick -> D-pad
             b.Add(Dir(ControlId.SightChangeY, AxisDirection.Negative, XboxButton.DPadUp));
             b.Add(Dir(ControlId.SightChangeY, AxisDirection.Positive, XboxButton.DPadDown));
@@ -42,7 +42,7 @@ namespace SBBridge.Core
             b.Add(Pad(ControlId.WeaponConMagazine, XboxButton.A));
             b.Add(Pad(ControlId.Start, XboxButton.Start, "Pause / menu"));
             b.Add(Pad(ControlId.MultiMonModeSelect, XboxButton.Back, "Map / view"));
-            b.Add(Pad(ControlId.Eject, XboxButton.Guide, "Steam / Guide button"));
+            b.Add(Pad(ControlId.Eject, XboxButton.Guide, "Guide / Steam"));
             // Everything else -> keys (bind these in-game)
             b.Add(Key(ControlId.Ignition, KeyCode.P, ButtonMode.Hold, "Power / shutdown"));
             b.Add(Key(ControlId.CockpitHatch, KeyCode.Home));
@@ -63,7 +63,7 @@ namespace SBBridge.Core
             b.Add(Key(ControlId.FunctionF1, KeyCode.F1));
             b.Add(Key(ControlId.FunctionF2, KeyCode.F2));
             b.Add(Key(ControlId.FunctionF3, KeyCode.F3));
-            b.Add(Key(ControlId.Comm1, KeyCode.D1, ButtonMode.Hold, "Weapon group / lance orders"));
+            b.Add(Key(ControlId.Comm1, KeyCode.D1, ButtonMode.Hold, "Weapon group 1"));
             b.Add(Key(ControlId.Comm2, KeyCode.D2));
             b.Add(Key(ControlId.Comm3, KeyCode.D3));
             b.Add(Key(ControlId.Comm4, KeyCode.D4));
@@ -75,8 +75,8 @@ namespace SBBridge.Core
             b.Add(Key(ControlId.ToggleBufferMaterial, KeyCode.F8, ButtonMode.PulseOnChange));
             b.Add(Key(ControlId.ToggleVTLocation, KeyCode.F9, ButtonMode.PulseOnChange));
             // Tuner dial clicks
-            b.Add(Key(ControlId.TunerClockwise, KeyCode.PageDown, ButtonMode.Pulse, "Next (e.g. camera / target)"));
-            b.Add(Key(ControlId.TunerCounterClockwise, KeyCode.End, ButtonMode.Pulse, "Previous"));
+            b.Add(Key(ControlId.TunerClockwise, KeyCode.PageDown, ButtonMode.Pulse, "Next target"));
+            b.Add(Key(ControlId.TunerCounterClockwise, KeyCode.End, ButtonMode.Pulse, "Previous target"));
             return p;
         }
 
